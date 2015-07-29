@@ -1,0 +1,103 @@
+#!/bin/sh
+# the next line restarts using wish \
+    exec vtk "$0" "$@"
+
+
+#BIOIMAGESUITE_LICENSE  ---------------------------------------------------------------------------------
+#BIOIMAGESUITE_LICENSE  This file is part of the BioImage Suite Software Package.
+#BIOIMAGESUITE_LICENSE  
+#BIOIMAGESUITE_LICENSE  X. Papademetris, M. Jackowski, N. Rajeevan, R.T. Constable, and L.H
+#BIOIMAGESUITE_LICENSE  Staib. BioImage Suite: An integrated medical image analysis suite, Section
+#BIOIMAGESUITE_LICENSE  of Bioimaging Sciences, Dept. of Diagnostic Radiology, Yale School of
+#BIOIMAGESUITE_LICENSE  Medicine, http://www.bioimagesuite.org.
+#BIOIMAGESUITE_LICENSE  
+#BIOIMAGESUITE_LICENSE  All rights reserved. This file may not be edited/copied/redistributed
+#BIOIMAGESUITE_LICENSE  without the explicit permission of the authors.
+#BIOIMAGESUITE_LICENSE  
+#BIOIMAGESUITE_LICENSE  -----------------------------------------------------------------------------------
+
+
+
+
+# -----------------------
+# Dependencies and path
+# -----------------------
+lappend auto_path [ file dirname [ info script ]]
+lappend auto_path [file join [file join [ file dirname [ info script ]] ".."] base ]
+
+package require pxtclutil 1.0
+package require vtkpxcontrib  1.1
+package require vtkmpjcontrib 1.1
+package require pxvtable 1.0
+
+wm withdraw .
+#puts stdout "Number of arguments = $argc"
+set num $argc 
+
+if { $num < 1 } {
+    set name [info script]
+    puts stdout "Usage: $name <input1.hdr> <input2.hdr> <operation> <type> \[output_sub\]"
+    puts stdout "operation: Add, Subtract, Multiply, Divide"
+    puts stdout "Type: UnsignedChar, Short, Float, Double"
+    exit
+}
+
+vtkpxAnalyzeImageSource ana1
+ana1 Load [ lindex $argv 0 ]
+set or1 [ ana1 GetOrientation ]
+puts stdout "Reading in image \#1 [ lindex $argv 0 ] [ [ ana1 GetOutput ] GetDimensions ] ori=[ ana1 GetOrientation] "
+
+vtkpxAnalyzeImageSource ana2
+ana2 Load [ lindex $argv 1 ]
+set or2 [ ana2 GetOrientation ]
+puts stdout "Reading in image \#2 [ lindex $argv 1 ] [ [ ana2 GetOutput ] GetDimensions ] ori=[ ana2 GetOrientation] "
+
+set type [ lindex $argv 3 ]
+vtkImageCast cast1
+eval "cast1 SetOutputScalarTypeTo$type"
+cast1 SetInput [ ana1 GetOutput ]
+
+vtkImageCast cast2
+eval "cast2 SetOutputScalarTypeTo$type"
+cast2 SetInput [ ana2 GetOutput ]
+
+vtkImageMathematics math
+math SetInput1 [ cast1 GetOutput ]
+math SetInput2 [ cast2 GetOutput ]
+set oper [lindex $argv 2]
+eval "math SetOperationTo$oper"
+math Update
+
+puts stdout "Writing image..."
+
+vtkpxAnalyzeImageWriter out
+set outp [ vtkImageData [ pxvtable::vnewobj ]]
+$outp ShallowCopy [ math GetOutput ]
+out SetInput $outp
+out SetImageHeader [ana1 GetImageHeader] 
+
+#vtkpxAnalyzeImageWriter out
+#out SetInput [ math GetOutput ]
+#out SetOrientation $or1
+
+set fname [lindex $argv 0]
+if { $num == 4 } {
+    set foutname "[file rootname $fname]_sub" 
+} else {
+    set foutname "[lindex $argv 4]"
+}
+
+puts stdout $foutname
+
+out Save $foutname
+
+puts stdout "Done!\n"
+
+out Delete
+math Delete
+cast1 Delete
+cast2 Delete
+ana1 Delete
+ana2 Delete
+
+exit

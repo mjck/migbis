@@ -1,0 +1,408 @@
+# This is the CMakeCache file.
+# For build in directory: /usr2/mjack/vtkmpjcontrib/LevelSet
+# You can edit this file to change values found and used by cmake.
+# If you do not want to change any of the values, simply exit the editor.
+# If you do want to change a value, simply edit, save, and exit the editor.
+# The syntax for the file is as follows:
+# KEY:TYPE=VALUE
+# KEY is the name of a varible in the cache.
+# TYPE is a hint to GUI's for the type of VALUE, DO NOT EDIT TYPE!.
+# VALUE is the current value for the KEY.
+
+########################
+# EXTERNAL cache entries
+########################
+
+//Archive program used to make archive libraries.
+CMAKE_AR:FILEPATH=/usr/bin/ar
+
+//Arguments for CMAKE_AR program to create an archive library.
+CMAKE_AR_ARGS:STRING=cr
+
+//For backwards compatibility, what version of CMake commands and
+// syntax should this version of CMake allow.
+CMAKE_BACKWARDS_COMPATIBILITY:STRING=1.6
+
+//Choose the type of build, options are: None(CMAKE_CXX_FLAGS or
+// CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.
+//
+CMAKE_BUILD_TYPE:STRING=
+
+//Name of C++ compiler used.
+CMAKE_CXX_COMPILER:FILEPATH=c++
+
+//Flags used by CXX compiler.
+CMAKE_CXX_FLAGS:STRING=-g -O2
+
+//Flags used by the compiler during debug builds.
+CMAKE_CXX_FLAGS_DEBUG:STRING=-g
+
+//Flags used by the compiler during release minsize builds.
+CMAKE_CXX_FLAGS_MINSIZEREL:STRING=-Os
+
+//Flags used by the compiler during release builds (/MD /Ob1 /Oi
+// /Ot /Oy /Gs will produce slightly less optimized but smaller
+// files).
+CMAKE_CXX_FLAGS_RELEASE:STRING=-O3
+
+//Flags used by the compiler during Release with Debug Info builds.
+//
+CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g
+
+//Name of C compiler used.
+CMAKE_C_COMPILER:FILEPATH=gcc
+
+//Flags for C compiler.
+CMAKE_C_FLAGS:STRING=-g -O2
+
+//Flags used by the compiler during debug builds.
+CMAKE_C_FLAGS_DEBUG:STRING=-g
+
+//Flags used by the compiler during release minsize builds.
+CMAKE_C_FLAGS_MINSIZEREL:STRING=-Os
+
+//Flags used by the compiler during release builds (/MD /Ob1 /Oi
+// /Ot /Oy /Gs will produce slightly less optimized but smaller
+// files).
+CMAKE_C_FLAGS_RELEASE:STRING=-O3
+
+//Flags used by the compiler during Release with Debug Info builds.
+//
+CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=-O2 -g
+
+//Dynamic link library to link in.
+CMAKE_DL_LIBS:STRING=-ldl
+
+//Flags used by the linker.
+CMAKE_EXE_LINKER_FLAGS:STRING=
+
+//Flags used by the linker during debug builds.
+CMAKE_EXE_LINKER_FLAGS_DEBUG:STRING=
+
+//Flags used by the linker during release minsize builds.
+CMAKE_EXE_LINKER_FLAGS_MINSIZEREL:STRING=
+
+//Flags used by the linker during release builds.
+CMAKE_EXE_LINKER_FLAGS_RELEASE:STRING=
+
+//Flags used by the linker during Release with Debug Info builds.
+//
+CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
+
+//Use HP pthreads.
+CMAKE_HP_PTHREADS:BOOL=OFF
+
+//Install path prefix, prepended onto install directories.
+CMAKE_INSTALL_PREFIX:PATH=/usr/local
+
+//Library extension used by this machine.
+CMAKE_LIB_EXT:STRING=
+
+//Path to a program.
+CMAKE_MAKE_PROGRAM:FILEPATH=/usr/bin/gmake
+
+//Flag used by CXX to build a shared library.
+CMAKE_MODULE_BUILD_FLAGS:STRING=-shared
+
+//Flags used by the linker during the creation of modules.
+CMAKE_MODULE_LINKER_FLAGS:STRING=
+
+//Flags used by the linker during debug builds.
+CMAKE_MODULE_LINKER_FLAGS_DEBUG:STRING=
+
+//Flags used by the linker during release minsize builds.
+CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL:STRING=
+
+//Flags used by the linker during release builds.
+CMAKE_MODULE_LINKER_FLAGS_RELEASE:STRING=
+
+//Flags used by the linker during Release with Debug Info builds.
+//
+CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
+
+//Flags used to link a shared library.
+CMAKE_MODULE_LINK_FLAGS:STRING=-rdynamic
+
+//Module library suffix.
+CMAKE_MODULE_SUFFIX:STRING=.so
+
+//Library randomizer program used on archive libraries.
+CMAKE_RANLIB:FILEPATH=ranlib
+
+//Flags used by the linker during the creation of dll's.
+CMAKE_SHARED_LINKER_FLAGS:STRING=
+
+//Flags used by the linker during debug builds.
+CMAKE_SHARED_LINKER_FLAGS_DEBUG:STRING=
+
+//Flags used by the linker during release minsize builds.
+CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL:STRING=
+
+//Flags used by the linker during release builds.
+CMAKE_SHARED_LINKER_FLAGS_RELEASE:STRING=
+
+//Flags used by the linker during Release with Debug Info builds.
+//
+CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO:STRING=
+
+//Flag used by CXX to build a shared library.
+CMAKE_SHLIB_BUILD_FLAGS:STRING=-shared
+
+//Flag used for building shared library objects.
+CMAKE_SHLIB_CFLAGS:STRING=-fPIC
+
+//Libraries used by LD for shared libraries.
+CMAKE_SHLIB_LD_LIBS:STRING=
+
+//Flags used to link a shared library.
+CMAKE_SHLIB_LINK_FLAGS:STRING=-rdynamic
+
+//Flag used to specify run-time search paths.
+CMAKE_SHLIB_RUNTIME_FLAG:STRING=-Wl,-rpath,
+
+//If null, each runtime path is a separate option. Otherwise, they
+// are all joined, separated by this.
+CMAKE_SHLIB_RUNTIME_SEP:STRING=:
+
+//Shared library suffix.
+CMAKE_SHLIB_SUFFIX:STRING=.so
+
+//If set, runtime paths are not added when using shared libraries.
+//
+CMAKE_SKIP_RPATH:BOOL=OFF
+
+//CXX template flags used by compiler.
+CMAKE_TEMPLATE_FLAGS:STRING=
+
+//Thread library used.
+CMAKE_THREAD_LIBS:STRING=-lpthread
+
+//Use the pthreads library.
+CMAKE_USE_PTHREADS:BOOL=ON
+
+//Use sproc libs.
+CMAKE_USE_SPROC:BOOL=OFF
+
+//If this value is on, makefiles will be generated without the
+// .SILENT directive, and all commands will be echoed to the console
+// during the make.  This is useful for debugging only.
+CMAKE_VERBOSE_MAKEFILE:BOOL=OFF
+
+//X11 extra flags.
+CMAKE_X_CFLAGS:STRING= -I/usr/X11R6/include
+
+//Libraries and options used in X11 programs.
+CMAKE_X_LIBS:STRING= -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext
+
+//Single output directory for building all executables.
+EXECUTABLE_OUTPUT_PATH:PATH=
+
+//Single output directory for building all libraries.
+LIBRARY_OUTPUT_PATH:PATH=
+
+//Value Computed by CMake
+Project_BINARY_DIR:STATIC=/usr2/mjack/vtkmpjcontrib/LevelSet
+
+//Value Computed by CMake
+Project_SOURCE_DIR:STATIC=/usr2/mjack/vtkmpjcontrib/LevelSet
+
+//Dependencies for the target
+vtkmpjLevelSet_LIB_DEPENDS:STATIC=vtkCommonTCL;vtkCommon;vtkFiltering;vtkFilteringTCL;vtkGraphics;vtkGraphicsTCL;vtkHybrid;vtkHybridTCL;vtkIO;vtkIOTCL;vtkImaging;vtkImagingTCL;vtkParallel;vtkParallelTCL;vtkRendering;vtkRenderingTCL;vtkjpeg;vtkpng;vtkzlib;
+
+
+########################
+# INTERNAL cache entries
+########################
+
+//What flags are required by the c++ compiler to make it ansi.
+CMAKE_ANSI_CFLAGS:INTERNAL=
+//What flags are required by the c++ compiler to make it ansi.
+CMAKE_ANSI_CXXFLAGS:INTERNAL=
+//Advanced flag for variable: CMAKE_AR
+CMAKE_AR-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_AR_ARGS
+CMAKE_AR_ARGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_BUILD_TOOL
+CMAKE_BUILD_TOOL-ADVANCED:INTERNAL=1
+//What is the target build tool cmake is generating for.
+CMAKE_BUILD_TOOL:INTERNAL=/usr/bin/gmake
+//This is the directory where this CMakeCahe.txt was created
+CMAKE_CACHEFILE_DIR:INTERNAL=/usr2/mjack/vtkmpjcontrib/LevelSet
+//Major version of cmake used to create the current loaded cache
+//
+CMAKE_CACHE_MAJOR_VERSION:INTERNAL=1
+//Minor version of cmake used to create the current loaded cache
+//
+CMAKE_CACHE_MINOR_VERSION:INTERNAL=6
+//Major version of cmake used to create the current loaded cache
+//
+CMAKE_CACHE_RELEASE_VERSION:INTERNAL=patch 7
+//Path to CMake executable.
+CMAKE_COMMAND:INTERNAL=/usr/local/vtk42/bin/cmake
+//Is the compile GNU C++.
+CMAKE_COMPILER_IS_GNUCXX:INTERNAL=1
+//Advanced flag for variable: CMAKE_CXX_COMPILER
+CMAKE_CXX_COMPILER-ADVANCED:INTERNAL=1
+//Result of TRY_COMPILE
+CMAKE_CXX_COMPILER_WORKS:INTERNAL=TRUE
+//Advanced flag for variable: CMAKE_CXX_FLAGS
+CMAKE_CXX_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_CXX_FLAGS_DEBUG
+CMAKE_CXX_FLAGS_DEBUG-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_CXX_FLAGS_MINSIZEREL
+CMAKE_CXX_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_CXX_FLAGS_RELEASE
+CMAKE_CXX_FLAGS_RELEASE-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_CXX_FLAGS_RELWITHDEBINFO
+CMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_C_COMPILER
+CMAKE_C_COMPILER-ADVANCED:INTERNAL=1
+//Result of TRY_COMPILE
+CMAKE_C_COMPILER_WORKS:INTERNAL=TRUE
+//Advanced flag for variable: CMAKE_C_FLAGS
+CMAKE_C_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_C_FLAGS_DEBUG
+CMAKE_C_FLAGS_DEBUG-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_C_FLAGS_MINSIZEREL
+CMAKE_C_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_C_FLAGS_RELEASE
+CMAKE_C_FLAGS_RELEASE-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_C_FLAGS_RELWITHDEBINFO
+CMAKE_C_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_DL_LIBS
+CMAKE_DL_LIBS-ADVANCED:INTERNAL=1
+//Path to cache edit program executable.
+CMAKE_EDIT_COMMAND:INTERNAL=/usr/local/vtk42/bin/ccmake
+//Advanced flag for variable: CMAKE_EXECUTABLE_SUFFIX
+CMAKE_EXECUTABLE_SUFFIX-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_EXE_LINKER_FLAGS
+CMAKE_EXE_LINKER_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_EXE_LINKER_FLAGS_DEBUG
+CMAKE_EXE_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_EXE_LINKER_FLAGS_MINSIZEREL
+//
+CMAKE_EXE_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_EXE_LINKER_FLAGS_RELEASE
+CMAKE_EXE_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
+//
+CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//Name of generator.
+CMAKE_GENERATOR:INTERNAL=Unix Makefiles
+//Is X11 around.
+CMAKE_HAS_X:INTERNAL=1
+//Start directory with the top level CMakeLists.txt file for this
+// project
+CMAKE_HOME_DIRECTORY:INTERNAL=/usr2/mjack/vtkmpjcontrib/LevelSet
+//Advanced flag for variable: CMAKE_HP_PTHREADS
+CMAKE_HP_PTHREADS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_LIB_EXT
+CMAKE_LIB_EXT-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MAKE_PROGRAM
+CMAKE_MAKE_PROGRAM-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MODULE_BUILD_FLAGS
+CMAKE_MODULE_BUILD_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MODULE_LINKER_FLAGS
+CMAKE_MODULE_LINKER_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MODULE_LINKER_FLAGS_DEBUG
+CMAKE_MODULE_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL
+//
+CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MODULE_LINKER_FLAGS_RELEASE
+//
+CMAKE_MODULE_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO
+//
+CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MODULE_LINK_FLAGS
+CMAKE_MODULE_LINK_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_MODULE_SUFFIX
+CMAKE_MODULE_SUFFIX-ADVANCED:INTERNAL=1
+//Does the compiler support ansi for scoping.
+CMAKE_NO_ANSI_FOR_SCOPE:INTERNAL=
+//Does the compiler support headers like iostream.
+CMAKE_NO_ANSI_STREAM_HEADERS:INTERNAL=
+//Does the compiler not support explicit template instantiation.
+//
+CMAKE_NO_EXPLICIT_TEMPLATE_INSTANTIATION:INTERNAL=
+//Does the compiler support std::.
+CMAKE_NO_STD_NAMESPACE:INTERNAL=
+//Advanced flag for variable: CMAKE_OBJECT_FILE_SUFFIX
+CMAKE_OBJECT_FILE_SUFFIX-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_RANLIB
+CMAKE_RANLIB-ADVANCED:INTERNAL=1
+//Path to CMake installation.
+CMAKE_ROOT:INTERNAL=/usr/local/share/CMake
+//Advanced flag for variable: CMAKE_SHARED_LINKER_FLAGS
+CMAKE_SHARED_LINKER_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHARED_LINKER_FLAGS_DEBUG
+CMAKE_SHARED_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL
+//
+CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHARED_LINKER_FLAGS_RELEASE
+//
+CMAKE_SHARED_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO
+//
+CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHLIB_BUILD_FLAGS
+CMAKE_SHLIB_BUILD_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHLIB_CFLAGS
+CMAKE_SHLIB_CFLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHLIB_LD_LIBS
+CMAKE_SHLIB_LD_LIBS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHLIB_LINK_FLAGS
+CMAKE_SHLIB_LINK_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHLIB_RUNTIME_FLAG
+CMAKE_SHLIB_RUNTIME_FLAG-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHLIB_RUNTIME_SEP
+CMAKE_SHLIB_RUNTIME_SEP-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_SHLIB_SUFFIX
+CMAKE_SHLIB_SUFFIX-ADVANCED:INTERNAL=1
+//Size of char data type
+CMAKE_SIZEOF_CHAR:INTERNAL=1
+//Size of double data type
+CMAKE_SIZEOF_DOUBLE:INTERNAL=8
+//Size of float data type
+CMAKE_SIZEOF_FLOAT:INTERNAL=4
+//Size of int data type
+CMAKE_SIZEOF_INT:INTERNAL=4
+//Size of long data type
+CMAKE_SIZEOF_LONG:INTERNAL=4
+//Size of short data type
+CMAKE_SIZEOF_SHORT:INTERNAL=2
+//Size of void* data type
+CMAKE_SIZEOF_VOID_P:INTERNAL=4
+//Advanced flag for variable: CMAKE_SKIP_RPATH
+CMAKE_SKIP_RPATH-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_STATICLIB_SUFFIX
+CMAKE_STATICLIB_SUFFIX-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_TEMPLATE_FLAGS
+CMAKE_TEMPLATE_FLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_THREAD_LIBS
+CMAKE_THREAD_LIBS-ADVANCED:INTERNAL=1
+//uname command
+CMAKE_UNAME:INTERNAL=/bin/uname
+//Advanced flag for variable: CMAKE_USE_PTHREADS
+CMAKE_USE_PTHREADS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_USE_SPROC
+CMAKE_USE_SPROC-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_USE_WIN32_THREADS
+CMAKE_USE_WIN32_THREADS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_VERBOSE_MAKEFILE
+CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_WORDS_BIGENDIAN
+CMAKE_WORDS_BIGENDIAN-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_X_CFLAGS
+CMAKE_X_CFLAGS-ADVANCED:INTERNAL=1
+//Advanced flag for variable: CMAKE_X_LIBS
+CMAKE_X_LIBS-ADVANCED:INTERNAL=1
+//Path to a library
+vtkmpjLevelSet:INTERNAL=/usr2/mjack/vtkmpjcontrib/LevelSet
+//Path to a library
+vtkmpjLevelSet_CMAKE_PATH:INTERNAL=/usr2/mjack/vtkmpjcontrib/LevelSet
+//Whether a library is static, shared or module.
+vtkmpjLevelSet_LIBRARY_TYPE:INTERNAL=STATIC
+

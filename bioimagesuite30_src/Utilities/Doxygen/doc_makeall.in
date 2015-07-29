@@ -1,0 +1,6 @@
+#!/bin/bash
+
+DOXYGEN_PROG="doxygen"
+DOXYGEN_ARGS="${BIOIMAGESUITE3_SOURCE_DIR}/Utilities/Doxygen/doxyfile"
+
+$DOXYGEN_PROG $DOXYGEN_ARGS

@@ -1,0 +1,383 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/repos/bioimagesuite/!svn/ver/5685/trunk3/mpjDiffusion
+END
+vtkmpjImageToTensors.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageToTensors.cpp
+END
+vtkmpjTensorLeastSquares.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjTensorLeastSquares.h
+END
+vtkmpjImageTensorInvariants.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/bioimagesuite/!svn/ver/5551/trunk3/mpjDiffusion/vtkmpjImageTensorInvariants.cpp
+END
+vtkmpjLatticeAnisotropy.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjLatticeAnisotropy.cpp
+END
+vtkmpjImageTensorMultiply.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorMultiply.cpp
+END
+vtkmpjImageTensorTransform.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/5259/trunk3/mpjDiffusion/vtkmpjImageTensorTransform.h
+END
+vtkmpjTensorToApparentDiffusion.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjTensorToApparentDiffusion.cpp
+END
+vtkmpjImageSymmetricTensor.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageSymmetricTensor.h
+END
+vtkmpjImageTensor_old.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensor_old.h
+END
+vtkmpjImageTensorColor.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorColor.h
+END
+vtkmpjImageTensor.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensor.h
+END
+vtkmpjImageTensorEigenAnalysis.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorEigenAnalysis.cpp
+END
+vtkmpjQBallImaging.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjQBallImaging.h
+END
+vtkmpjCreateSymmetricTensor.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjCreateSymmetricTensor.h
+END
+vtkmpjFastMarchingTensor.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjFastMarchingTensor.h
+END
+vtkmpjTensorLeastSquares.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjTensorLeastSquares.cpp
+END
+vtkmpjImageTensorTransform.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/bioimagesuite/!svn/ver/5259/trunk3/mpjDiffusion/vtkmpjImageTensorTransform.cpp
+END
+vtkmpjImageInvertTensor.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageInvertTensor.h
+END
+vtkmpjImageTensor_old.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensor_old.cpp
+END
+vtkmpjImageTensor.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensor.cpp
+END
+vtkmpjImageTensorProduct.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorProduct.cpp
+END
+vtkmpjImageTensorInvariants.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorInvariants.h
+END
+vtkmpjQBallImaging.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjQBallImaging.cpp
+END
+vtkmpjImageDotProduct.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageDotProduct.cpp
+END
+vtkmpjFastMarching1stOrder.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjFastMarching1stOrder.cpp
+END
+vtkmpjCreateSymmetricTensor.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjCreateSymmetricTensor.cpp
+END
+vtkmpjTensorBMatrixLeastSquares.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjTensorBMatrixLeastSquares.cpp
+END
+vtkmpjImageToVectors.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageToVectors.h
+END
+vtkmpjImageToGrid.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageToGrid.h
+END
+vtkmpjImageFrobeniusNorm.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageFrobeniusNorm.h
+END
+vtkmpjFastMarchingTensor.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjFastMarchingTensor.cpp
+END
+vtkmpjImageInvertTensor.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageInvertTensor.cpp
+END
+vtkmpjFastMarching2ndOrder.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjFastMarching2ndOrder.cpp
+END
+vtkmpjHeartSheetAngle.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjHeartSheetAngle.h
+END
+vtkmpjTensorGeometryMetrics.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjTensorGeometryMetrics.h
+END
+vtkmpjHeartFiberAngle.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/bioimagesuite/!svn/ver/5259/trunk3/mpjDiffusion/vtkmpjHeartFiberAngle.cpp
+END
+vtkmpjImageTensorProduct.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorProduct.h
+END
+vtkmpjImageTensorSimilarity.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorSimilarity.cpp
+END
+vtkmpjApparentDiffusion.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjApparentDiffusion.h
+END
+vtkmpjImageTensorVariance.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorVariance.cpp
+END
+vtkmpjImageFrobeniusNorm.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageFrobeniusNorm.cpp
+END
+vtkmpjImageToGrid.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageToGrid.cpp
+END
+vtkmpjImageToVectors.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageToVectors.cpp
+END
+vtkmpjImageTensorCoherence.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorCoherence.h
+END
+vtkmpjImageDotProduct.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageDotProduct.h
+END
+vtkmpjFastMarching1stOrder.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjFastMarching1stOrder.h
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/repos/bioimagesuite/!svn/ver/5685/trunk3/mpjDiffusion/CMakeLists.txt
+END
+vtkmpjHeartSheetAngle.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/bioimagesuite/!svn/ver/5259/trunk3/mpjDiffusion/vtkmpjHeartSheetAngle.cpp
+END
+vtkmpjTensorBMatrixLeastSquares.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjTensorBMatrixLeastSquares.h
+END
+vtkmpjImageToTensors.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageToTensors.h
+END
+vtkmpjImageSymmetricTensor.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageSymmetricTensor.cpp
+END
+vtkmpjFastMarching2ndOrder.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjFastMarching2ndOrder.h
+END
+vtkmpjImageTensorColor.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorColor.cpp
+END
+vtkmpjTensorGeometryMetrics.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjTensorGeometryMetrics.cpp
+END
+vtkmpjApparentDiffusion.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjApparentDiffusion.cpp
+END
+vtkmpjLatticeAnisotropy.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjLatticeAnisotropy.h
+END
+vtkmpjImageTensorMultiply.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorMultiply.h
+END
+vtkmpjTensorToApparentDiffusion.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjTensorToApparentDiffusion.h
+END
+vtkmpjHeartFiberAngle.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjHeartFiberAngle.h
+END
+vtkmpjImageTensorSimilarity.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorSimilarity.h
+END
+vtkmpjImageTensorCoherence.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorCoherence.cpp
+END
+vtkmpjImageTensorVariance.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorVariance.h
+END
+vtkmpjImageTensorEigenAnalysis.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/repos/bioimagesuite/!svn/ver/4746/trunk3/mpjDiffusion/vtkmpjImageTensorEigenAnalysis.h
+END

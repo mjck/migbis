@@ -1,0 +1,1317 @@
+
+
+//BIOIMAGESUITE_LICENSE  ---------------------------------------------------------------------------------
+//BIOIMAGESUITE_LICENSE  This file is part of the BioImage Suite Software Package.
+//BIOIMAGESUITE_LICENSE  
+//BIOIMAGESUITE_LICENSE  X. Papademetris, M. Jackowski, N. Rajeevan, R.T. Constable, and L.H
+//BIOIMAGESUITE_LICENSE  Staib. BioImage Suite: An integrated medical image analysis suite, Section
+//BIOIMAGESUITE_LICENSE  of Bioimaging Sciences, Dept. of Diagnostic Radiology, Yale School of
+//BIOIMAGESUITE_LICENSE  Medicine, http://www.bioimagesuite.org.
+//BIOIMAGESUITE_LICENSE  
+//BIOIMAGESUITE_LICENSE  All rights reserved. This file may not be edited/copied/redistributed
+//BIOIMAGESUITE_LICENSE  without the explicit permission of the authors.
+//BIOIMAGESUITE_LICENSE  
+//BIOIMAGESUITE_LICENSE  -----------------------------------------------------------------------------------
+
+
+#include "vtkmpjTensorStreamline.h"
+#include "vtkMath.h"
+#include "vtkObjectFactory.h"
+#include "vtkFloatArray.h"
+#include "pxisinf.h"
+
+//------------------------------------------------------------------------------
+vtkmpjTensorStreamline* vtkmpjTensorStreamline::New()
+{
+  // First try to create the object from the vtkObjectFactory
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkmpjTensorStreamline");
+  if(ret)
+    {
+    return (vtkmpjTensorStreamline*)ret;
+    }
+  // If the factory was unable to create the object, then create it here.
+  return new vtkmpjTensorStreamline;
+}
+
+//
+// Special classes for manipulating data
+//BTX
+class vtkmpjTensorPoint { //;prevent man page generation
+public:
+  vtkmpjTensorPoint(); // method sets up storage
+  vtkmpjTensorPoint &operator=(const vtkmpjTensorPoint& hp); //for resizing
+  
+  double X[3];        // position 
+  vtkIdType CellId;  // cell
+  int SubId;         // cell sub id
+  //  vtkIdType PointId; // approx point id
+  double P[3];        // parametric coords in cell 
+  double W[3];        // eigenvalues (sorted in decreasing value)
+  double *V[3];       // pointers to eigenvectors (also sorted)
+  double V0[3];       // storage for eigenvectors
+  double V1[3];
+  double V2[3];
+  float S;           // input scalar
+  float Angle;       // angle between eigenvectors
+  float FA;          // fractional anisotropy 
+  float MD;          // mean diffusivity
+  float M;           // mask value
+  float D;           // distance travelled so far 
+};
+//ETX
+
+class vtkmpjTensorArray { //;prevent man page generation
+public:
+  vtkmpjTensorArray();
+  ~vtkmpjTensorArray()
+  {
+    if (this->Array)
+      {
+        delete [] this->Array;
+      }
+  };
+  vtkIdType GetNumberOfPoints() {return this->MaxId + 1;};
+  vtkmpjTensorPoint *GetmpjTensorPoint(vtkIdType i) {return this->Array + i;};
+  vtkmpjTensorPoint *InsertNextmpjTensorPoint() 
+  {
+    if ( ++this->MaxId >= this->Size )
+      {
+	this->Resize(this->MaxId);
+      }
+    return this->Array + this->MaxId;
+  }
+  vtkmpjTensorPoint *Resize(vtkIdType sz); //reallocates data
+  void Reset() {this->MaxId = -1;};
+  
+  vtkmpjTensorPoint *Array;  // pointer to data
+  vtkIdType MaxId;          // maximum index inserted thus far
+  vtkIdType Size;          // allocated size of data
+  vtkIdType Extend;       // grow array by this amount
+  float Direction;       // integration direction
+};
+
+#define VTK_START_FROM_POSITION 0
+#define VTK_START_FROM_LOCATION 1
+
+vtkmpjTensorPoint::vtkmpjTensorPoint()
+{
+  this->V[0] = this->V0;
+  this->V[1] = this->V1;
+  this->V[2] = this->V2;
+}
+
+vtkmpjTensorPoint& vtkmpjTensorPoint::operator=(const vtkmpjTensorPoint& hp)
+{
+  int i, j;
+
+  for (i=0; i<3; i++) 
+    {
+      this->X[i] = hp.X[i];
+      this->P[i] = hp.P[i];
+      this->W[i] = hp.W[i];
+      for (j=0; j<3; j++)
+	{
+	  this->V[j][i] = hp.V[j][i];
+	}
+    }
+  
+  this->S = hp.S;
+  this->CellId = hp.CellId;
+  //  this->PointId = hp.PointId;
+  this->SubId = hp.SubId;
+  
+  this->D = hp.D;  
+  this->Angle = hp.Angle;
+  this->MD = hp.MD;
+  this->FA = hp.FA;
+  this->M = hp.M;
+  
+  return *this;
+}
+
+vtkmpjTensorArray::vtkmpjTensorArray()
+{
+  this->MaxId = -1; 
+  this->Array = new vtkmpjTensorPoint[1000];
+  this->Size = 1000;
+  this->Extend = 5000;
+  this->Direction = VTK_MPJ_INTEGRATE_FORWARD;
+}
+
+vtkmpjTensorPoint *vtkmpjTensorArray::Resize(vtkIdType sz)
+{
+  vtkmpjTensorPoint *newArray;
+  vtkIdType newSize, i;
+
+  if (sz >= this->Size)
+    {
+    newSize = this->Size + 
+      this->Extend*(((sz-this->Size)/this->Extend)+1);
+    }
+  else
+    {
+      newSize = sz;
+    }
+  
+  newArray = new vtkmpjTensorPoint[newSize];
+
+  for (i=0; i<sz; i++)
+    {
+    newArray[i] = this->Array[i];
+    }
+
+  this->Size = newSize;
+  delete [] this->Array;
+  this->Array = newArray;
+
+  return this->Array;
+}
+
+// Construct object with initial starting position (0,0,0); 
+vtkmpjTensorStreamline::vtkmpjTensorStreamline()
+{
+  this->StartFrom = VTK_START_FROM_POSITION;
+  this->StartPosition[0] = this->StartPosition[1] = this->StartPosition[2] = 0.0;
+  this->StartCell = 0;  
+  this->StartSubId = 0;
+  this->StartPCoords[0] = this->StartPCoords[1] = this->StartPCoords[2] = 0.5;
+
+  this->Streamers = NULL;
+
+  this->MaximumDistance = 100.0;
+  this->MinimumDistance = 5;
+  this->IntegrationStepLength = 0.2;
+  this->StepLength = 0.01;
+  this->IntegrationDirection = VTK_MPJ_INTEGRATE_FORWARD;
+
+  this->MaximumAngle = 90.0;
+  this->MinimumFA = 0.1;
+  this->MaximumFA = 1.0;
+  this->MinimumMD = 0.0;
+  this->MaximumMD = VTK_LARGE_FLOAT;
+  
+  this->FlipX = 0;
+  this->FlipY = 0;
+  this->FlipZ = 0;
+
+  this->IntegrationEigenvector = 0; //Major eigenvector
+  this->IntegrationOrder = VTK_MPJ_RUNGE_KUTTA2;
+
+  this->DirectionalColormap = 0;
+  this->DirectionalColorScheme = 0;
+  this->DirectionalColorSaturation = 0.5;
+  this->DirectionalColorScaling = 1.0;
+  this->DirectionalColorModulate = 0;
+  this->DirectionalColorAlphaBlending = 0;
+
+  this->Tensor = NULL;
+  this->Source = NULL;
+  this->Mask = NULL;
+}
+
+vtkmpjTensorStreamline::~vtkmpjTensorStreamline()
+{
+  if ( this->Streamers )
+    {
+      delete [] this->Streamers;
+    }
+  
+  // destroy source as well as inputs  
+  if (this->Tensor != NULL)
+    this->Tensor->Delete();
+  
+  if (this->Mask != NULL)
+    this->Mask->Delete();
+  
+  if (this->Source != NULL)
+    this->Source->Delete();
+}
+
+// ----------------------------------------------------------------------------
+vtkDataSet *vtkmpjTensorStreamline::GetInput()
+{
+  return (vtkDataSet *)(this->Inputs[0]);
+}
+
+// Specify the start of the hyperstreamline in the cell coordinate system. 
+// That is, cellId and subId (if composite cell), and parametric coordinates.
+void vtkmpjTensorStreamline::SetStartLocation(vtkIdType cellId, int subId,
+                                          float pcoords[3])
+{
+  if ( cellId != this->StartCell || subId != this->StartSubId ||
+       pcoords[0] !=  this->StartPCoords[0] || 
+       pcoords[1] !=  this->StartPCoords[1] || 
+       pcoords[2] !=  this->StartPCoords[2] )
+    {
+    this->Modified();
+    this->StartFrom = VTK_START_FROM_LOCATION;
+
+    this->StartCell = cellId;
+    this->StartSubId = subId;
+    this->StartPCoords[0] = pcoords[0];
+    this->StartPCoords[1] = pcoords[1];
+    this->StartPCoords[2] = pcoords[2];
+    }
+}
+
+// Specify the start of the hyperstreamline in the cell coordinate system. 
+// That is, cellId and subId (if composite cell), and parametric coordinates.
+void vtkmpjTensorStreamline::SetStartLocation(vtkIdType cellId, int subId,
+                                          float r, float s, float t)
+{
+  float pcoords[3];
+  pcoords[0] = r;
+  pcoords[1] = s;
+  pcoords[2] = t;
+
+  this->SetStartLocation(cellId, subId, pcoords);
+}
+
+// Get the starting location of the hyperstreamline in the cell coordinate
+// system. Returns the cell that the starting point is in.
+vtkIdType vtkmpjTensorStreamline::GetStartLocation(int& subId, float pcoords[3])
+{
+  subId = this->StartSubId;
+  pcoords[0] = this->StartPCoords[0];
+  pcoords[1] = this->StartPCoords[1];
+  pcoords[2] = this->StartPCoords[2];
+  return this->StartCell;
+}
+
+// Specify the start of the hyperstreamline in the global coordinate system. 
+// Starting from position implies that a search must be performed to find 
+// initial cell to start integration from.
+void vtkmpjTensorStreamline::SetStartPosition(double x[3])
+{
+  if ( x[0] != this->StartPosition[0] || x[1] != this->StartPosition[1] || 
+  x[2] != this->StartPosition[2] )
+    {
+    this->Modified();
+    this->StartFrom = VTK_START_FROM_POSITION;
+
+    this->StartPosition[0] = x[0];
+    this->StartPosition[1] = x[1];
+    this->StartPosition[2] = x[2];
+    }
+}
+
+// Specify the start of the hyperstreamline in the global coordinate system. 
+// Starting from position implies that a search must be performed to find 
+// initial cell to start integration from.
+void vtkmpjTensorStreamline::SetStartPosition(double x, double y, double z)
+{
+  double pos[3];
+  pos[0] = x;
+  pos[1] = y;
+  pos[2] = z;
+
+  this->SetStartPosition(pos);
+}
+
+// Get the start position of the hyperstreamline in global x-y-z coordinates.
+double *vtkmpjTensorStreamline::GetStartPosition()
+{
+  return this->StartPosition;
+}
+
+// Use the major eigenvector field as the vector field through which to 
+// integrate. The major eigenvector is the eigenvector whose corresponding
+// eigenvalue is closest to positive infinity.
+void vtkmpjTensorStreamline::IntegrateMajorEigenvector()
+{
+  if ( this->IntegrationEigenvector != 0 )
+    {
+    this->Modified();
+    this->IntegrationEigenvector = 0;
+  }
+}
+
+// Use the major eigenvector field as the vector field through which to 
+// integrate. The major eigenvector is the eigenvector whose corresponding
+// eigenvalue is between the major and minor eigenvalues.
+void vtkmpjTensorStreamline::IntegrateMediumEigenvector()
+{
+  if ( this->IntegrationEigenvector != 1 )
+    {
+    this->Modified();
+    this->IntegrationEigenvector = 1;
+  }
+}
+
+// Use the major eigenvector field as the vector field through which to 
+// integrate. The major eigenvector is the eigenvector whose corresponding
+// eigenvalue is closest to negative infinity.
+void vtkmpjTensorStreamline::IntegrateMinorEigenvector()
+{
+  if ( this->IntegrationEigenvector != 2 )
+    {
+    this->Modified();
+    this->IntegrationEigenvector = 2;
+  }
+}
+
+// Make sure coordinate systems are consistent
+void vtkmpjTensorStreamline::FixVectors(double **prev, double **current, int iv, int ix, int iy)
+{
+  double p0[3], p1[3], p2[3];
+  double v0[3], v1[3], v2[3];
+  double temp[3];
+  int i;
+
+  float flip[3];
+  flip[0] = this->FlipX ? -1.0 : 1.0;
+  flip[1] = this->FlipY ? -1.0 : 1.0;
+  flip[2] = this->FlipZ ? -1.0 : 1.0;
+
+  for (i=0; i<3; i++)
+    {
+      v0[i] = (current[i][iv] *= flip[i]); 
+      v1[i] = (current[i][ix] *= flip[i]);
+      v2[i] = (current[i][iy] *= flip[i]);
+    }
+  
+  if ( prev == NULL ) //make sure coord system is right handed
+    {
+      vtkMath::Cross(v0,v1,temp);
+      if ( vtkMath::Dot(v2,temp) < 0.0 )
+	{
+	  for (i=0; i<3; i++)
+	    {
+	      current[i][iy] *= -1.0;
+	    }
+	}
+    }
+  
+  else //make sure vectors consistent from one point to the next
+    {
+      for (i=0; i<3; i++)
+	{
+	  p0[i] = prev[i][iv];
+	  p1[i] = prev[i][ix];
+	  p2[i] = prev[i][iy];
+	}
+      if ( vtkMath::Dot(p0,v0) < 0.0 )
+	{
+	  for (i=0; i<3; i++)
+	    {
+	      current[i][iv] *= -1.0;
+	    }
+	}
+      if ( vtkMath::Dot(p1,v1) < 0.0 )
+	{
+	  for (i=0; i<3; i++)
+	    {
+	      current[i][ix] *= -1.0;
+	    }
+	}
+      if ( vtkMath::Dot(p2,v2) < 0.0 )
+	{
+	  for (i=0; i<3; i++)
+	    {
+	      current[i][iy] *= -1.0;
+	    }
+	}
+    }
+}
+
+void vtkmpjTensorStreamline::Execute()
+{
+  vtkDataSet *input = this->GetInput();
+  vtkDataSet *source = this->Source;
+
+  vtkPointData *pdt=this->Tensor->GetPointData();
+
+  //  float *tensor;
+  vtkmpjTensorPoint *sNext, *sPtr;
+  int i, ptId, subId, offset, index, iv, ix, iy;
+  //int j, k;
+  vtkIdType numSourcePts, idx;
+  vtkCell *cell;
+  double ev[3], xNext[3];
+  float k1[3], k2[3], k3[3], k4[3];
+  //  float vort[3], derivs[9];
+  float d, step, dir, tol2;
+  double p[3];
+  double *w;
+  double dist2;
+  float angle;
+  float w0,w1,w2;
+  double closestPoint[3];
+  double *m[3], *v[3];
+  double m0[3], m1[3], m2[3];
+  double v0[3], v1[3], v2[3];
+
+  vtkDataArray *inMask = NULL;
+  vtkDataArray *cellMask = NULL;
+
+  if (this->Mask != NULL) {
+    inMask = this->Mask->GetPointData()->GetScalars();
+    cellMask = vtkDataArray::CreateDataArray(inMask->GetDataType());
+    cellMask->SetNumberOfComponents(1);
+    cellMask->SetNumberOfTuples(VTK_CELL_SIZE);
+  }
+  
+  vtkDataArray *inTensors;
+  vtkDataArray *inScalars;
+  vtkDataArray *cellTensors;
+  vtkDataArray *cellScalars;
+  
+  // set up working matrices
+  v[0] = v0; v[1] = v1; v[2] = v2; 
+  m[0] = m0; m[1] = m1; m[2] = m2; 
+  float rad2deg = 180.0 / vtkMath::Pi();
+  
+  this->NumberOfStreamers = 0;
+  w = new double[input->GetMaxCellSize()];
+  
+  inTensors = pdt->GetScalars();
+  cellTensors = vtkDataArray::CreateDataArray(inTensors->GetDataType());
+  
+  //    vtkPointData *pd = ((vtkDataSet *)this->Inputs[n])->GetPointData();
+  inScalars = this->GetInput()->GetPointData()->GetScalars();
+  cellScalars = vtkDataArray::CreateDataArray(inScalars->GetDataType());
+  cellScalars->SetNumberOfComponents(inScalars->GetNumberOfComponents());
+  cellScalars->SetNumberOfTuples(VTK_CELL_SIZE);
+  
+  int numTComp;
+  numTComp = inTensors->GetNumberOfComponents();
+  cellTensors->SetNumberOfComponents(numTComp);
+  cellTensors->SetNumberOfTuples(VTK_CELL_SIZE);
+  
+  tol2 = input->GetLength() / 1000.0;
+  tol2 = tol2 * tol2;
+  iv = this->IntegrationEigenvector;
+  ix = (iv + 1) % 3;
+  iy = (iv + 2) % 3;
+
+  //
+  // Create starting points
+  //
+  this->NumberOfStreamers = numSourcePts = offset = 1;
+  
+  if ( this->Source )
+    {
+      this->NumberOfStreamers = numSourcePts = this->Source->GetNumberOfPoints();
+    }
+  
+  if ( this->IntegrationDirection == VTK_MPJ_INTEGRATE_BOTH_DIRECTIONS )
+    {
+      offset = 2;
+      this->NumberOfStreamers *= 2;
+    }
+  
+  this->Streamers = new vtkmpjTensorArray[this->NumberOfStreamers];
+  
+  if ( this->StartFrom == VTK_START_FROM_POSITION && !this->Source )
+    {
+      sPtr = this->Streamers[0].InsertNextmpjTensorPoint();
+      for (i=0; i<3; i++)
+	{
+	  sPtr->X[i] = this->StartPosition[i];
+	}
+
+      sPtr->CellId = input->FindCell(this->StartPosition, NULL, -1, 0.0, 
+				     sPtr->SubId, sPtr->P, w);
+    }
+  else if ( this->StartFrom == VTK_START_FROM_LOCATION && !this->Source )
+    {
+      sPtr = this->Streamers[0].InsertNextmpjTensorPoint();
+      cell =  input->GetCell(sPtr->CellId);
+      cell->EvaluateLocation(sPtr->SubId, sPtr->P, sPtr->X, w);
+    }
+  
+  else //VTK_START_FROM_SOURCE
+    {      
+      for (ptId=0; ptId < numSourcePts; ptId++)
+	{
+	  sPtr = this->Streamers[offset*ptId].InsertNextmpjTensorPoint();
+	  source->GetPoint(ptId,sPtr->X);	  
+	  sPtr->CellId = input->FindCell(sPtr->X, NULL, -1, tol2, 
+					 sPtr->SubId, sPtr->P, w);
+	}
+    }
+  
+  //
+  // Finish initializing each hyperstreamline
+  //
+  for (idx=0, ptId=0; ptId < numSourcePts; ptId++)
+    {
+      this->Streamers[offset*ptId].Direction = 1.0;
+      sPtr = this->Streamers[offset*ptId].GetmpjTensorPoint(idx);
+      
+      sPtr->S = 0.0;
+      sPtr->D = 0.0;      
+      sPtr->Angle = 0.0;
+      
+      if ( sPtr->CellId >= 0 ) //starting point in dataset
+	{
+	  cell = input->GetCell(sPtr->CellId);
+	  cell->EvaluateLocation(sPtr->SubId, sPtr->P, xNext, w);
+	  
+	  inTensors->GetTuples(cell->PointIds, cellTensors);	  
+	  
+	  InterpolateTensor(cell, cellTensors, w, m);	  
+	  vtkMath::Jacobi(m, sPtr->W, sPtr->V);
+	  FixVectors(NULL, sPtr->V, iv, ix, iy);
+	  
+	  // compute MD and FA
+	  sPtr->MD = (sPtr->W[0] + sPtr->W[1] + sPtr->W[2]) / 3.0;
+	  w0 = sPtr->W[0] - sPtr->MD;
+	  w1 = sPtr->W[1] - sPtr->MD;
+	  w2 = sPtr->W[2] - sPtr->MD;
+	  sPtr->FA = sqrt(3*(w0*w0 + w1*w1 + w2*w2)) /
+	    sqrt(2*((sPtr->W[0])*(sPtr->W[0]) + 
+		    (sPtr->W[1])*(sPtr->W[1]) + 
+		    (sPtr->W[2])*(sPtr->W[2])));
+	  if (isnan(sPtr->FA)) {
+	    sPtr->FA = 0.0;
+	  }
+	  
+	  // compute scalar
+	  inScalars->GetTuples(cell->PointIds, cellScalars);
+
+	  for (sPtr->S=0, i=0; i < cell->GetNumberOfPoints(); i++)
+	    {
+	      sPtr->S += cellScalars->GetComponent(i,0) * w[i];
+	    }
+	  
+	  // select weight
+	  int wi=0;
+	  float wmax=0;
+	  for (i=0;i<cell->GetNumberOfPoints();i++)
+	    if (w[i] > wmax) {
+	      wi = i;  wmax = w[i];
+	    }
+	  
+	  // compute point id
+	  //	  sPtr->PointId = cell->GetPointId(wi);
+
+	  // compute mask value
+	  if (inMask != NULL) {	    
+	    inMask->GetTuples(cell->PointIds, cellMask);
+	    sPtr->M = cellMask->GetComponent(wi, 0);
+	  } else sPtr->M = 0;
+	  
+	} else {
+	  // zero it out
+	}
+      
+      if ( this->IntegrationDirection == VTK_MPJ_INTEGRATE_BOTH_DIRECTIONS )
+	{
+	  this->Streamers[offset*ptId+1].Direction = -1.0;
+	  sNext = this->Streamers[offset*ptId+1].InsertNextmpjTensorPoint();
+	  *sNext = *sPtr;
+	}
+      else if ( this->IntegrationDirection == VTK_MPJ_INTEGRATE_BACKWARD )
+	{
+	  this->Streamers[offset*ptId].Direction = -1.0;
+	}
+      
+    } //for hyperstreamline in dataset
+  
+  // Progress computation
+  int count = 0;
+  float pog = 0.0;
+  int tenth= (int)(this->NumberOfStreamers / 10.0);
+  
+  this->UpdateProgress(0.01);
+  
+  //
+  // For each hyperstreamline, integrate in appropriate direction (using RK2).
+  //
+  for (ptId=0; ptId < this->NumberOfStreamers; ptId++)
+    {
+      
+      // progress computation
+      count++;
+      if (count==tenth)
+        {
+          pog+=0.1;
+          this->UpdateProgress(pog);
+          count=0;
+        }
+
+      //get starting step
+      sPtr = this->Streamers[ptId].GetmpjTensorPoint(0);
+      if ( sPtr->CellId < 0 )
+	{
+	  continue;
+	}
+      
+      dir = this->Streamers[ptId].Direction;
+      cell = input->GetCell(sPtr->CellId);
+      cell->EvaluateLocation(sPtr->SubId, sPtr->P, xNext, w);
+      step = this->IntegrationStepLength * sqrt((double)cell->GetLength2());
+      inTensors->GetTuples(cell->PointIds, cellTensors);
+      inScalars->GetTuples(cell->PointIds, cellScalars);
+
+      //integrate until distance has been exceeded
+      while ( ( sPtr->CellId >= 0 ) && 
+	      ( sPtr->D < this->MaximumDistance ) &&
+	      ( sPtr->FA >= this->MinimumFA ) && ( sPtr->FA < this->MaximumFA ) &&
+	      ( sPtr->MD >= this->MinimumMD ) && ( sPtr->MD < this->MaximumMD ) &&
+	      ( sPtr->Angle < this->MaximumAngle ) )	
+	{	  
+
+	  // evaluate k2
+	  for (i=0; i<3; i++) {
+	    k1[i] = dir * step * sPtr->V[i][iv];
+	    xNext[i] = sPtr->X[i] + 0.5 * k1[i];
+	  }
+
+	  cell->EvaluatePosition(xNext, closestPoint, subId, p, dist2, w);
+	  
+	  InterpolateTensor(cell, cellTensors, w, m);
+	  vtkMath::Jacobi(m, ev, v);
+	  FixVectors(sPtr->V, v, iv, ix, iy);
+	  
+	  // evaluate k3
+	  for (i=0; i<3; i++) {
+	    k2[i] = dir * step * v[i][iv];
+	    xNext[i] = sPtr->X[i] + 0.5 * k2[i];
+	  }
+	  
+	  if ( this->IntegrationOrder == VTK_MPJ_RUNGE_KUTTA4 ) {	    
+	    cell->EvaluatePosition(xNext, closestPoint, subId, p, dist2, w);
+	    InterpolateTensor(cell, cellTensors, w, m);
+	    vtkMath::Jacobi(m, ev, v);
+	    FixVectors(sPtr->V, v, iv, ix, iy);
+	    
+	    // evaluate k4
+	    for (i=0; i<3; i++) {
+	      k3[i] = dir * step * v[i][iv];
+	      xNext[i] = sPtr->X[i] + 0.5 * k3[i];
+	    }
+	    
+	    cell->EvaluatePosition(xNext, closestPoint, subId, p, dist2, w);
+	    InterpolateTensor(cell, cellTensors, w, m);
+	    vtkMath::Jacobi(m, ev, v);
+	    FixVectors(sPtr->V, v, iv, ix, iy);
+	    
+	    for (i=0; i<3; i++) {
+	      k4[i] = dir * step * v[i][iv];
+	      
+	      //now compute final position
+	      xNext[i] = sPtr->X[i] + k1[i]/6.0 + k2[i]/3.0 + k3[i]/3.0 + k4[i]/6.0;
+	    }	    
+	  }
+	  
+	  // get a hold of the current index
+	  index = this->Streamers[ptId].GetNumberOfPoints();	  
+	  
+	  // insert next point
+	  sNext = this->Streamers[ptId].InsertNextmpjTensorPoint();
+	  
+	  // make sure sPtr is still valid after possible Resizing
+	  sPtr = this->Streamers[ptId].GetmpjTensorPoint(index-1);
+
+	  if ( cell->EvaluatePosition(xNext, closestPoint, sNext->SubId, 
+				      sNext->P, dist2, w) )
+	    { 
+	      //integration still in cell
+	      for (i=0; i<3; i++)
+		{
+		  sNext->X[i] = closestPoint[i];
+		}
+	      sNext->CellId = sPtr->CellId;
+	      sNext->SubId = sPtr->SubId;
+	    }
+	  else
+	    { //integration has passed out of cell
+	      sNext->CellId = input->FindCell(xNext, cell, sPtr->CellId, tol2, 
+					      sNext->SubId, sNext->P, w);
+	      if ( sNext->CellId >= 0 ) //make sure not out of dataset
+		{
+		  for (i=0; i<3; i++)
+		    {
+		      sNext->X[i] = xNext[i];
+		    }
+		  cell = input->GetCell(sNext->CellId);
+		  inTensors->GetTuples(cell->PointIds, cellTensors);
+		  inScalars->GetTuples(cell->PointIds, cellScalars);
+		  step = this->IntegrationStepLength * sqrt((double)cell->GetLength2());
+		} else {
+		}
+	    }
+	  
+	  if ( sNext->CellId >= 0 )
+	    {
+	      cell->EvaluateLocation(sNext->SubId, sNext->P, xNext, w);
+	      InterpolateTensor(cell, cellTensors, w, m);
+	      vtkMath::Jacobi(m, sNext->W, sNext->V);
+	      FixVectors(sPtr->V, sNext->V, iv, ix, iy);
+	      
+	      // interpolate scalars
+	      inScalars->GetTuples(cell->PointIds, cellScalars);
+	      for (sNext->S=0, i=0; i < cell->GetNumberOfPoints(); i++)
+		{
+		  sNext->S += cellScalars->GetComponent(i,0) * w[i];
+		}
+	      
+	      // select weight
+	      int wi=0;
+	      float wmax=0;
+	      for (i=0;i<cell->GetNumberOfPoints();i++)
+		if (w[i] > wmax) {
+		  wi = i;  wmax = w[i];
+		}
+
+	      // compute point id
+	      //	      sPtr->PointId = cell->GetPointId(wi);
+
+	      // interpolate mask value
+	      if (inMask != NULL) {
+		inMask->GetTuples(cell->PointIds, cellMask);
+		sNext->M = cellMask->GetComponent(wi, 0);
+	      }
+	      
+	      d = sqrt((double)vtkMath::Distance2BetweenPoints(sPtr->X,sNext->X));
+	      sNext->D = sPtr->D + d;   
+	      
+	      float v_old[3], v_new[3];;
+	      
+	      for (i=0;i<3;i++) {
+		v_old[i] = sPtr->V[i][iv];
+		v_new[i] = sNext->V[i][iv];
+	      }	      
+	      vtkMath::Normalize(v_old);
+	      vtkMath::Normalize(v_new);
+	      angle = vtkMath::Dot(v_old, v_new);	      
+	      if (angle > 1.0) angle = 1.0; 
+	      if (angle < -1.0) angle = -1.0;	      
+	      sNext->Angle = acos(angle) * rad2deg;
+	      
+	      // compute MD and FA
+	      sNext->MD = (sNext->W[0] + sNext->W[1] + sNext->W[2]) / 3.0;
+	      w0 = sNext->W[0] - sNext->MD;
+	      w1 = sNext->W[1] - sNext->MD;
+	      w2 = sNext->W[2] - sNext->MD;
+	      sNext->FA = sqrt(3*(w0*w0 + w1*w1 + w2*w2)) /
+		sqrt(2*((sNext->W[0])*(sNext->W[0]) + 
+			(sNext->W[1])*(sNext->W[1]) + 
+			(sNext->W[2])*(sNext->W[2])));	      	   
+	      if (isnan(sNext->FA)) {
+		sNext->FA = 0.0;
+		//printf("w0=%f,w1=%f,w1=%f,W0=%f,W1=%f,W2=%f\n",w0,w1,w2,sNext->W[0],sNext->W[1],sNext->W[2]);
+	      }
+
+	    } else {
+	      
+	      /* copy information from last point */
+	      *sNext = *sPtr;
+	      sNext->CellId = -1;
+	    }
+	  
+	  sPtr = sNext;
+	  
+	  /* printf("cellid=%d\n",sPtr->CellId);
+	     printf("S1[%d]=%f\n",this->TerminalScalarComponent1,sPtr->S[this->TerminalScalarComponent1]);
+	     printf("S2[%d]=%f\n",this->TerminalScalarComponent2,sPtr->S[this->TerminalScalarComponent2]);
+	     printf("TS1=%f\n",this->TerminalScalar1);
+	     printf("TS2=%f\n",this->TerminalScalar2);
+	     printf("D=%f, max=%f \n",sPtr->D,this->MaximumDistance);
+	     printf("Angle=%f max=%f\n",sPtr->Angle, this->MaximumAngle);*/
+
+	  
+	} //for elapsed time
+      
+    } //for each hyperstreamline
+
+  this->BuildPolylines();
+  
+  delete [] w;
+  cellTensors->Delete();
+  
+  cellScalars->Delete();    
+}
+
+void vtkmpjTensorStreamline::BuildPolylines()
+{
+  vtkPolyData *output = this->GetOutput();
+  vtkPointData *outPD = output->GetPointData();
+  
+  vtkPoints *newPts = vtkPoints::New();
+  vtkCellArray *newCells = vtkCellArray::New();
+  //vtkFloatArray *newScalars = vtkFloatArray::New();
+
+  vtkFloatArray *fa = vtkFloatArray::New();
+  fa->SetName("fractani");
+  fa->SetNumberOfComponents(1);
+
+  vtkFloatArray *md = vtkFloatArray::New();
+  md->SetName("meandiff");
+  md->SetNumberOfComponents(1);
+
+  vtkFloatArray *dist = vtkFloatArray::New();
+  dist->SetName("distance");
+  dist->SetNumberOfComponents(1);
+
+  vtkFloatArray *angle = vtkFloatArray::New();
+  angle->SetName("angle");
+  angle->SetNumberOfComponents(1);
+
+  vtkFloatArray *roi = vtkFloatArray::New();
+  roi->SetName("roi");
+  roi->SetNumberOfComponents(1);
+  
+  vtkFloatArray *other = vtkFloatArray::New();
+  other->SetName("other");
+  other->SetNumberOfComponents(1);
+  
+  vtkUnsignedCharArray *dec = vtkUnsignedCharArray::New();
+  dec->SetName("rgb");
+  dec->SetNumberOfComponents(this->DirectionalColorAlphaBlending ? 4 : 3);
+
+  int ptId, id, iv;
+  vtkmpjTensorPoint *sPtr, *sPtr2, *sNext;
+  double v[3];
+  float rgb[4];
+
+  iv = this->IntegrationEigenvector;
+
+  //newScalars->SetNumberOfComponents(1);
+  
+  for (ptId=0; ptId < this->NumberOfStreamers; ptId+=2)
+    {     
+      int numPts = this->Streamers[ptId].GetNumberOfPoints();
+      int numPts2 = this->Streamers[ptId+1].GetNumberOfPoints();
+      
+      //sPtr = this->Streamers[ptId].GetmpjTensorPoint(0);	
+      //if (ptId < this->NumberOfStreamers-1) {
+      //sNext = this->Streamers[ptId+1].GetmpjTensorPoint(0);	
+      //printf("pos1=%f,%f,%f\n",sPtr->X[0],sPtr->X[1],sPtr->X[2]);
+      //	printf("pos2=%f,%f,%f\n",sNext->X[0],sNext->X[1],sNext->X[2]);
+      //}
+
+      int numTotal = numPts + numPts2;
+      if ( numTotal >= 2 ) {
+	
+	// only keep fibers with minimum distance from seed
+	sPtr = this->Streamers[ptId].GetmpjTensorPoint(numPts-1);
+	sPtr2 = this->Streamers[ptId+1].GetmpjTensorPoint(numPts2-1);
+	
+	if ( (sPtr->D + sPtr2->D ) >= this->MinimumDistance ) {
+	  
+	  // allocate next cell
+	  newCells->InsertNextCell(numTotal-1);
+	  
+
+	  // first segment of the fiber
+	  //	  for(int i=0; i<numPts; i++) {
+	  for (int i=numPts-1; i>=0; i--) {
+	    
+	    sPtr = this->Streamers[ptId].GetmpjTensorPoint(i);	
+	  //	    sNext = this->Streamers[ptId].GetmpjTensorPoint(i+1);
+	    
+	    // insert next point
+	    id = newPts->InsertNextPoint(sPtr->X);
+	    
+	    // insert next cell
+	    newCells->InsertCellPoint(id);
+	    
+	    // insert scalars(s)
+	    //newScalars->InsertNextTuple(&sPtr->S);
+	    
+	    // insert fields
+	    fa->InsertNextTuple(&sPtr->FA);
+	    md->InsertNextTuple(&sPtr->MD);
+	    dist->InsertNextTuple(&sPtr->D);
+	    angle->InsertNextTuple(&sPtr->Angle);
+	    roi->InsertNextTuple(&sPtr->M);
+	    other->InsertNextTuple(&sPtr->S);	 
+
+	    // insert color coding
+	    if (this->DirectionalColormap) {
+	      
+	      v[0] = sPtr->V[0][iv]; 
+	      v[1] = sPtr->V[1][iv]; 
+	      v[2] = sPtr->V[2][iv];
+	      
+	      switch(this->DirectionalColorScheme) {
+	      case 1: 
+		this->RotationalSymmetryScheme(sPtr->FA, v, rgb);
+		break;
+	      case 2:
+		this->NoSymmetryScheme(sPtr->FA, v, rgb);
+		break;
+	      case 3:
+		this->MirrorSymmetryScheme(sPtr->FA, v, rgb);
+		break;
+	      default:		
+		this->AbsoluteValueScheme(sPtr->FA, v, rgb);
+	      }	
+	      
+	      if (this->DirectionalColorAlphaBlending)
+		rgb[3] = sPtr->FA*255;
+
+	      dec->InsertNextTuple(rgb);
+	    }
+	    
+	  }
+
+	  // second segment of the fiber
+	  for(int i=1; i<numPts2; i++) {
+
+	    sPtr = this->Streamers[ptId+1].GetmpjTensorPoint(i);
+
+	    // insert next point
+	    id = newPts->InsertNextPoint(sPtr->X);
+	    
+	    // insert next cell
+	    newCells->InsertCellPoint(id);
+	    
+	    // insert scalars(s)
+	    //newScalars->InsertNextTuple(&sPtr->S);
+	    
+	    // insert fields
+	    fa->InsertNextTuple(&sPtr->FA);
+	    md->InsertNextTuple(&sPtr->MD);
+	    dist->InsertNextTuple(&sPtr->D);
+	    angle->InsertNextTuple(&sPtr->Angle);
+	    roi->InsertNextTuple(&sPtr->M);
+	    other->InsertNextTuple(&sPtr->S);	 
+
+	    // insert color coding
+	    if (this->DirectionalColormap) {
+	      
+	      v[0] = sPtr->V[0][iv]; 
+	      v[1] = sPtr->V[1][iv]; 
+	      v[2] = sPtr->V[2][iv];
+
+	      switch(this->DirectionalColorScheme) {
+	      case 1: 
+		this->RotationalSymmetryScheme(sPtr->FA, v, rgb);
+		break;
+	      case 2:
+		this->NoSymmetryScheme(sPtr->FA, v, rgb);
+		break;
+	      case 3:
+		this->MirrorSymmetryScheme(sPtr->FA, v, rgb);
+		break;
+	      default:		
+		this->AbsoluteValueScheme(sPtr->FA, v, rgb);
+	      }
+	      
+	      if (this->DirectionalColorAlphaBlending) 
+		rgb[3] = sPtr->FA*255;
+
+	      dec->InsertNextTuple(rgb);
+	    }
+	    
+	  }
+	  
+	}
+      }
+    }
+    
+  //outPD->SetScalars(newScalars);
+  //  newScalars->Delete();
+  
+  outPD->AddArray(fa);
+  fa->Delete();
+
+  outPD->AddArray(md);
+  md->Delete();
+
+  outPD->AddArray(dist);
+  dist->Delete();
+
+  outPD->AddArray(angle);
+  angle->Delete();
+
+  outPD->AddArray(roi);
+  roi->Delete();
+  
+  outPD->AddArray(other);
+  other->Delete();
+
+  // insert color coding
+  if (this->DirectionalColormap) {
+    outPD->AddArray(dec);
+  }
+  dec->Delete();
+
+  output->SetPoints(newPts);
+  newPts->Delete();
+
+  output->SetLines(newCells);
+  newCells->Delete();
+}
+
+void vtkmpjTensorStreamline::InterpolateTensor(vtkCell *cell, vtkDataArray *cellTensors, double *w, double *m[3])
+{
+  int i, j, k;
+  double *tensor;
+    
+  // reset tensor
+  for (j=0; j<3; j++)
+    for (i=0; i<3; i++)
+      {
+	m[i][j] = 0.0;
+      }
+  
+  int numcomp=cellTensors->GetNumberOfComponents();
+
+  // interpolate tensor
+  for (k=0; k < cell->GetNumberOfPoints(); k++)
+    {
+      tensor = cellTensors->GetTuple(k);
+      
+      if (numcomp == 6) {
+
+	m[0][0] += tensor[0] * w[k];
+	m[1][0] += tensor[1] * w[k]; 
+	m[0][1] += tensor[1] * w[k];
+	m[2][0] += tensor[2] * w[k]; 
+	m[0][2] += tensor[2] * w[k];		
+	m[1][1] += tensor[3] * w[k]; 
+	m[2][1] += tensor[4] * w[k]; 
+	m[1][2] += tensor[4] * w[k];
+	m[2][2] += tensor[5] * w[k];			
+
+	//printf("%f %f %f %f %f %f -- ",m[0][0],m[1][0],m[2][0],m[1][1],m[2][1],m[2][2]);	
+
+      } else {
+	
+	m[0][0] += tensor[0] * w[k];
+	m[1][0] += tensor[1] * w[k]; 
+	m[0][1] += tensor[1] * w[k];
+	m[2][0] += tensor[2] * w[k]; 
+	m[0][2] += tensor[2] * w[k];	
+	m[1][1] += tensor[4] * w[k]; 
+	m[2][1] += tensor[5] * w[k]; 
+	m[1][2] += tensor[5] * w[k];
+	m[2][2] += tensor[8] * w[k];			
+
+	//printf("%f %f %f %f %f %f -- ",m[0][0],m[1][0],m[2][0],m[1][1],m[2][1],m[2][2]);	
+      } 	
+    }
+}
+
+void vtkmpjTensorStreamline::AbsoluteValueScheme(float FA, double v[3], float nrgb[3])
+{
+  float mgn;
+  float rgb[3];
+  float scale = this->DirectionalColorScaling;
+
+  rgb[0] = rgb[1] = rgb[2] = 0;
+  
+  rgb[0] = fabs(v[0]);
+  rgb[1] = fabs(v[1]);
+  rgb[2] = fabs(v[2]);
+  
+  /* compute color */
+  mgn = (this->DirectionalColorModulate ? FA : 1.0);
+
+  rgb[0] *= mgn;
+  rgb[1] *= mgn;
+  rgb[2] *= mgn;
+  
+  /* RGBs have to be in [0,255] */
+  nrgb[0] = rgb[0]*255*scale;
+  nrgb[1] = rgb[1]*255*scale;
+  nrgb[2] = rgb[2]*255*scale;
+  
+  nrgb[0] = nrgb[0] < 256 ? nrgb[0] : 255;
+  nrgb[1] = nrgb[1] < 256 ? nrgb[1] : 255;
+  nrgb[2] = nrgb[2] < 256 ? nrgb[2] : 255;
+  
+}
+
+void vtkmpjTensorStreamline::RotationalSymmetryScheme(float FA, double v[3], float nrgb[3])
+{
+
+  float rgb[3], hsv[3];
+  float theta, phi;
+  float vlenxy, vlen;
+  float pi = vtkMath::Pi();
+  float ps = this->DirectionalColorSaturation;
+  float scale = this->DirectionalColorScaling;
+
+  rgb[0] = rgb[1] = rgb[2] = 0;
+  
+  nrgb[0] = v[0];
+  nrgb[1] = v[1];
+  nrgb[2] = v[2];
+  
+  /* normalize vector */
+  vlenxy = vtkMath::Norm2D(v);
+
+  /* compute hue */
+  if (v[0] > 0)
+    phi = asin(v[1] / vlenxy);
+  else
+    phi = pi - asin(v[1] / vlenxy);
+  hsv[0] = fmod((phi+2*pi+pi/2)*2,2*pi) / (2*pi);
+  if (hsv[0] > 1.0) hsv[0] = 1.0;
+  
+  /* compute saturation */
+  vlen = vtkMath::Norm(v);
+  theta = asin(vlenxy / vlen);
+  if (theta > 1) theta = 1.0;
+  hsv[1] = sin(ps*theta) / sin(ps*pi/2);
+  
+  /* compute value */
+  hsv[2] = (this->DirectionalColorModulate ? FA : 1.0);
+  
+  vtkMath::HSVToRGB(hsv, rgb);
+
+  /* RGBs have to be in [0,255] */
+  nrgb[0] = rgb[0]*255+scale*nrgb[0];
+  nrgb[1] = rgb[1]*255+scale*nrgb[1];
+  nrgb[2] = rgb[2]*255+scale*nrgb[2];
+  
+  nrgb[0] = nrgb[0] < 256 ? nrgb[0] : 255;
+  nrgb[1] = nrgb[1] < 256 ? nrgb[1] : 255;
+  nrgb[2] = nrgb[2] < 256 ? nrgb[2] : 255;
+}
+
+
+void vtkmpjTensorStreamline::NoSymmetryScheme(float FA, double v[3], float nrgb[3])
+{
+  float rgb[3], hsv[3];
+  float theta, phi;
+  float vlenxy, vlen;
+  float pi = vtkMath::Pi();
+  float ps = this->DirectionalColorSaturation;
+  float scale = this->DirectionalColorScaling;
+  
+  rgb[0] = rgb[1] = rgb[2] = 0;
+  
+  nrgb[0] = v[0];
+  nrgb[1] = v[1];
+  nrgb[2] = v[2];
+
+  /* normalize vector */
+  vlenxy = vtkMath::Norm2D(v);
+  
+  /* compute hue */
+  if (v[0] > 0)
+    phi = asin(v[1] / vlenxy);
+  else
+    phi = pi - asin(v[1] / vlenxy);
+  hsv[0] = fmod(phi+2*pi,2*pi) / (2*pi);
+  if (hsv[0] > 1.0) hsv[0] = 1.0;
+  
+  /* compute saturation */
+  vlen = vtkMath::Norm(v);
+  theta = asin(vlenxy / vlen);
+  if (theta > 1) theta = 1.0;
+  hsv[1] = sin(ps*theta) / sin(ps*pi/2);
+    
+  /* compute value */
+  hsv[2] = (this->DirectionalColorModulate ? FA : 1.0);
+  
+  vtkMath::HSVToRGB(hsv, rgb);
+  
+  /* RGBs have to be in [0,255] */
+  nrgb[0] = rgb[0]*255+scale*nrgb[0];
+  nrgb[1] = rgb[1]*255+scale*nrgb[1];
+  nrgb[2] = rgb[2]*255+scale*nrgb[2];
+  
+  nrgb[0] = nrgb[0] < 256 ? nrgb[0] : 255;
+  nrgb[1] = nrgb[1] < 256 ? nrgb[1] : 255;
+  nrgb[2] = nrgb[2] < 256 ? nrgb[2] : 255;
+  
+}
+
+
+void vtkmpjTensorStreamline::MirrorSymmetryScheme(float FA, double v[3], float nrgb[3])
+{
+  float rgb[3], hsv[3];
+  float theta, phi;
+  float vlenxy, vlen;
+  float pi = vtkMath::Pi();
+  float ps = this->DirectionalColorSaturation;
+  float scale = this->DirectionalColorScaling;
+
+  rgb[0] = rgb[1] = rgb[2] = 0;
+  
+  nrgb[0] = v[0];
+  nrgb[1] = v[1];
+  nrgb[2] = v[2];
+  
+  /* normalize vector */
+  vlenxy = vtkMath::Norm2D(v);
+  
+  /* compute hue */
+  if (v[0] > 0)
+    phi = asin(v[1] / vlenxy);
+  else
+    phi = pi + asin(v[1] / vlenxy);
+  hsv[0] = 2 * fmod(phi + pi, pi) / (2*pi);
+  if (hsv[0] > 1.0) hsv[0] = 1.0;
+  
+  /* compute saturation */
+  vlen = vtkMath::Norm(v);
+  theta = asin(vlenxy / vlen);
+  if (theta > 1) theta = 1.0;
+  hsv[1] = sin(ps*theta) / sin(ps*pi/2);
+  
+  /* compute value */
+  hsv[2] = (this->DirectionalColorModulate ? FA : 1.0);
+  
+  vtkMath::HSVToRGB(hsv, rgb);
+  
+  /* RGBs have to be in [0,255] */
+  nrgb[0] = rgb[0]*255+scale*nrgb[0];
+  nrgb[1] = rgb[1]*255+scale*nrgb[1];
+  nrgb[2] = rgb[2]*255+scale*nrgb[2];
+  
+  nrgb[0] = nrgb[0] < 256 ? nrgb[0] : 255;
+  nrgb[1] = nrgb[1] < 256 ? nrgb[1] : 255;
+  nrgb[2] = nrgb[2] < 256 ? nrgb[2] : 255;
+}
+
+void vtkmpjTensorStreamline::PrintSelf(ostream& os, vtkIndent indent)
+{
+  vtkDataSetToPolyDataFilter::PrintSelf(os,indent);
+
+  if ( this->StartFrom == VTK_START_FROM_POSITION )
+    {
+    os << indent << "Starting Position: (" << this->StartPosition[0] << ","
+       << this->StartPosition[1] << ", " << this->StartPosition[2] << ")\n";
+    }
+  else 
+    {
+    os << indent << "Starting Location:\n\tCell: " << this->StartCell 
+       << "\n\tSubId: " << this->StartSubId << "\n\tP.Coordinates: ("
+       << this->StartPCoords[0] << ", " 
+       << this->StartPCoords[1] << ", " 
+       << this->StartPCoords[2] << ")\n";
+    }
+
+  os << indent << "Maximum Propagation Distance: " 
+     << this->MaximumDistance << "\n";
+
+  if ( this->IntegrationDirection == VTK_MPJ_INTEGRATE_FORWARD )
+    {
+    os << indent << "Integration Direction: FORWARD\n";
+    }
+  else if ( this->IntegrationDirection == VTK_MPJ_INTEGRATE_BACKWARD )
+    {
+    os << indent << "Integration Direction: BACKWARD\n";
+    }
+  else
+    {
+    os << indent << "Integration Direction: FORWARD & BACKWARD\n";
+    }
+
+  os << indent << "Integration Step Length: " << this->IntegrationStepLength << "\n";
+  os << indent << "Step Length: " << this->StepLength << "\n";
+
+  if ( this->IntegrationEigenvector == 0 )
+    {
+    os << indent << "Integrate Along Major Eigenvector\n";
+    }
+  else if ( this->IntegrationEigenvector == 1 )
+    {
+    os << indent << "Integrate Along Medium Eigenvector\n";
+    }
+  else
+    {
+    os << indent << "Integrate Along Minor Eigenvector\n";
+    }
+}
+
+

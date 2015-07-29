@@ -1,0 +1,26 @@
+@echo off
+REM --------------------------------------------------------------------------------------
+REM This file is part of the BioImage Suite Software Package. (seee www.bioimagesuite.org)
+REM --------------------------------------------------------------------------------------
+
+REM bis_fix_script_begin
+SET BIOIMAGESUITE=@BIOIMAGESUITE3_SOURCE_DIR_BAT@\bioimagesuite
+SET BIS_VTK_DIR=@VTK_DIR_BAT@
+SET BIOIMAGESUITE3_BINARY_DIR=@BIOIMAGESUITE3_BINARY_DIR_BAT@
+SET BINPATH=@EXECUTABLE_OUTPUT_PATH_BAT@
+SET BASELIB=@LIBRARY_OUTPUT_PATH_BAT@
+REM bis_fixscript_end
+
+call %BIS_VTK_DIR%\..\..\..\setpaths.bat	
+
+
+REM -----------------------------------
+REM Optional support for other packages
+REM -----------------------------------
+
+
+
+SET PATH=%BIOIMAGESUITE%;%BIOIMAGESUITE%\main;%BINPATH%;%BIOIMAGESUITE%\apps;%BIOIMAGESUITE%\mjack;%BIOIMAGESUITE%\bis_algorithm;%BIOIMAGESUITE%\datatree;%BASELIB%;%PATH%
+
+echo BioimageSuite ready to run. Type bioimagesuite.bat to get the starting menu
+

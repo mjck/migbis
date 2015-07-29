@@ -1,0 +1,3 @@
+#If you want to increase the limit for log modify following lines
+SET(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE  65536)
+SET(CTEST_CUSTOM_MAXIMUM_FAILED_TEST_OUTPUT_SIZE  65536)

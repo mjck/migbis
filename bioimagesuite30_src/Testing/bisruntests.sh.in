@@ -1,0 +1,89 @@
+#!/bin/bash
+# --------------------------------------------------------------------------------------
+# This file is part of the BioImage Suite Software Package. (seee www.bioimagesuite.org)
+# --------------------------------------------------------------------------------------
+# Arguments (all optional)
+# First = Type either Experiemental or Nightly
+# Second = DISPLAY setting
+# Third = Options on tests (e.g. 1-2)
+
+#bis_fix_script_begin
+TST_BINARY_DIR=@BIOIMAGESUITE3_BINARY_DIR@
+TST_SOURCE_DIR=@BIOIMAGESUITE3_SOURCE_DIR@
+TST_TEST_DIR=@BIOIMAGESUITE3_TEST_DIR@
+TST_TMP_DIR=@BIOIMAGESUITE3_TESTING_TEMPDIR@
+BINPATH=@EXECUTABLE_OUTPUT_PATH@
+DISP=@BIOIMAGESUITE3_TESTING_DISPLAY@
+SVNUPDATE=@BIOIMAGESUITE3_TESTING_DOSVNUPDATE@
+CLEAN=@BIOIMAGESUITE3_TESTING_DOCLEANBUILD@
+CTEST=@CMAKE_CTEST_COMMAND@
+SVN=@SVNCOMMAND@
+#bis_fixscript_end
+
+TESTMODE=Experimental
+TESTSTORUN=""
+
+TESTMODE=$1
+TESTSTORUN=$3
+
+
+export BISTEMP=$TST_TMP_DIR
+
+if [ -n "$2" ]; then
+    DISP=$2
+fi
+
+
+if [ -n "$DISP" ]; then
+    export DISPLAY=$DISP
+fi
+
+echo "---------------------------------------------------------------------------"
+echo "Beginning tests DISPLAY=${DISPLAY} TEMP=$BISTEMP `date`"
+echo ""
+
+if [ $SVNUPDATE == "ON" ]; then
+
+    echo "Updating Test Data at ${TST_TEST_DIR}"; 
+    echo "";
+
+    cd ${TST_TEST_DIR}
+    ${SVN} cleanup
+    ${SVN} update
+
+    echo "Updating Source Tree at ${TST_SOURCE_DIR}"; echo "";
+    cd ${TST_SOURCE_DIR}
+    ${SVN} cleanup; 
+    ${SVN} update
+fi
+
+cd ${TST_BINARY_DIR}
+
+if [ "$TESTMODE" != "Nightly" ]; then
+    TESTMODE="Experimental"
+fi
+
+if [ "$TESTSTORUN" != "" ]; then
+    TESTSTORUN="-I $TESTSTORUN"
+fi 
+
+echo "---------------------------------------------------------------------------"
+echo "Beginning ${CTEST} Testing as *${TESTMODE}* "
+echo "Flags=*${TESTSTORUN}* at ${TST_BINARY_DIR}"; 
+echo "---------------------------------------------------------------------------"
+
+
+if [ "$CLEAN" == "ON" ]; then
+    make clean
+fi
+
+
+${CTEST} -D ${TESTMODE}Start
+${CTEST} -D ${TESTMODE}Configure -VV
+${CTEST} -D ${TESTMODE}Build -VV
+${CTEST} -D ${TESTMODE}Test ${TESTSTORUN}
+${CTEST} -D ${TESTMODE}Submit
+
+echo "---------------------------------------------------------------------------"
+echo "Done"
+

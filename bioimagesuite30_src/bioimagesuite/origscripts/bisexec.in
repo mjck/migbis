@@ -1,0 +1,23 @@
+#!/bin/bash
+
+
+# --------------------------------------------------------------------------------------
+# This file is part of the BioImage Suite Software Package. (seee www.bioimagesuite.org)
+# --------------------------------------------------------------------------------------
+
+#bis_fix_script_begin
+BASE=@BIOIMAGESUITE3_BINARY_DIR@
+BIS_VTK_DIR=@VTK_DIR@
+BIOIMAGESUITE3_BINARY_DIR=@BIOIMAGESUITE3_BINARY_DIR@
+BINPATH=@EXECUTABLE_OUTPUT_PATH@
+BASELIB=@LIBRARY_OUTPUT_PATH@
+#bis_fixscript_end
+
+source ${BASE}/setpaths.sh > /dev/null
+SNAME=$1
+shift 1
+echo "Executing Scriptname = $SNAME -- $@"
+
+${BIS_VTK_DIR}/../../bin/vtk ${SNAME} -- $@
+
+

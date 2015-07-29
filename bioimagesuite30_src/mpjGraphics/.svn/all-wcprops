@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/repos/bioimagesuite/!svn/ver/2768/trunk/mpjGraphics
+END
+vtkmpjVertexSource.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjVertexSource.h
+END
+vtkmpjTubeFilter.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjTubeFilter.cpp
+END
+vtkmpjDiffusionProfile.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjDiffusionProfile.cpp
+END
+vtkmpjTubeFilter.h
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjTubeFilter.h
+END
+vtkmpjDiffusionProfile.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjDiffusionProfile.h
+END
+vtkmpjTensorGlyph.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjTensorGlyph.cpp
+END
+vtkmpjIcosahedronSource.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjIcosahedronSource.cpp
+END
+vtkmpjTensorGlyph.h
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjTensorGlyph.h
+END
+vtkmpjIcosahedronSource.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjIcosahedronSource.h
+END
+vtkmpjSphereSubdivisionSource.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjSphereSubdivisionSource.cpp
+END
+vtkmpjDiffusionGlyph.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjDiffusionGlyph.cpp
+END
+vtkmpjSphereSubdivisionSource.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjSphereSubdivisionSource.h
+END
+vtkmpjVertexSource.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjVertexSource.cpp
+END
+vtkmpjDiffusionGlyph.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/bioimagesuite/!svn/ver/249/trunk/mpjGraphics/vtkmpjDiffusionGlyph.h
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/repos/bioimagesuite/!svn/ver/2768/trunk/mpjGraphics/CMakeLists.txt
+END

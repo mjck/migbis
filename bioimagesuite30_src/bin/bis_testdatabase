@@ -1,0 +1,27 @@
+#!/bin/bash
+
+
+# --------------------------------------------------------------------------------------
+# This file is part of the BioImage Suite Software Package. (seee www.bioimagesuite.org)
+# --------------------------------------------------------------------------------------
+
+#bis_fix_script_begin
+BASE=/Users/mjack/src3/bioimagesuite30_src/bioimagesuite
+BIS_VTK_DIR=/usr/local/bioimagesuite3_base64/vtk510/lib/vtk-5.10
+BIOIMAGESUITE3_BINARY_DIR=/Users/mjack/src3/bioimagesuite30_src
+BINPATH=/Users/mjack/src3/bioimagesuite30_src/bin
+BASELIB=/Users/mjack/src3/bioimagesuite30_src/lib
+#bis_fixscript_end
+
+
+if [ -n "$BIOIMAGESUITE3_BINARY_DIR" ]; then
+    source ${BIOIMAGESUITE3_BINARY_DIR}/setpaths.sh > /dev/null
+else
+    source ${BASE}/setpaths.sh > /dev/null
+fi
+
+#echo "Running ${BIS_VTK_DIR}/../../bin/vtk ${BASE}/bis_algorithm/bis_testdatabase.tcl"
+
+${BIS_VTK_DIR}/../../bin/vtk ${BASE}/bis_algorithm/bis_testdatabase.tcl -- $@
+
+

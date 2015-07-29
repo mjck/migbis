@@ -1,0 +1,25 @@
+@echo off
+REM --------------------------------------------------------------------------------------
+REM This file is part of the BioImage Suite Software Package. (seee www.bioimagesuite.org)
+REM --------------------------------------------------------------------------------------
+
+REM bis_fix_script_begin
+SET BIOIMAGESUITE=@BIOIMAGESUITE3_SOURCE_DIR_BAT@\bioimagesuite
+SET BIS_VTK_DIR=@VTK_DIR_BAT@
+SET BIOIMAGESUITE3_BINARY_DIR=@BIOIMAGESUITE3_BINARY_DIR_BAT@
+SET BINPATH=@EXECUTABLE_OUTPUT_PATH_BAT@
+SET BASELIB=@LIBRARY_OUTPUT_PATH_BAT@
+REM bis_fixscript_end
+
+@if not exist %BIOIMAGESUITE3_BINARY_DIR%\setpaths.bat goto TAG2
+  call %BIOIMAGESUITE3_BINARY_DIR%\setpaths.bat	
+  goto TAG3
+
+:TAG2
+  call %BIOIMAGESUITE%\setpaths.bat
+
+:TAG3
+
+REM echo Invoking %BIS_VTK_DIR%\..\..\bin\vtk.exe  %BIOIMAGESUITE%\bis_algorithm\@item@.tcl 
+%BIS_VTK_DIR%\..\..\bin\vtk.exe  %BIOIMAGESUITE%\bis_algorithm\@item@.tcl -- %*
+

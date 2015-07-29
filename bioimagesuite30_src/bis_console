@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# --------------------------------------------------------------------------------------
+# This file is part of the BioImage Suite Software Package. (seee www.bioimagesuite.org)
+# --------------------------------------------------------------------------------------
+#bis_fix_script_begin
+BASE=/Users/mjack/src3/bioimagesuite30_src
+BIS_VTK_DIR=/usr/local/bioimagesuite3_base64/vtk510/lib/vtk-5.10
+#bis_fixscript_end
+
+exec xterm -fn 10x20 -bg darkblue -fg white -title "BioImage Suite Console $BASE" -e bash -rcfile ${BASE}/setpaths_console.sh
+
+
+
+

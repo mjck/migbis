@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+# --------------------------------------------------------------------------------------
+# This file is part of the BioImage Suite Software Package. (seee www.bioimagesuite.org)
+# --------------------------------------------------------------------------------------
+
+#bis_fix_script_begin
+BASE=@BIOIMAGESUITE3_BINARY_DIR@
+#bis_fixscript_end
+
+# ----------------------------------
+# BIOIMAGESUITE: No edits below here
+# ----------------------------------
+
+source ${BASE}/setpaths.sh
+bis.tcl
+
+

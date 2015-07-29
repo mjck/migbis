@@ -1,0 +1,573 @@
+#BIOIMAGESUITE_LICENSE  ---------------------------------------------------------------------------------
+#BIOIMAGESUITE_LICENSE  This file is part of the BioImage Suite Software Package.
+#BIOIMAGESUITE_LICENSE  
+#BIOIMAGESUITE_LICENSE  X. Papademetris, M. Jackowski, N. Rajeevan, H. Okuda, R.T. Constable, and L.H
+#BIOIMAGESUITE_LICENSE  Staib. BioImage Suite: An integrated medical image analysis suite, Section
+#BIOIMAGESUITE_LICENSE  of Bioimaging Sciences, Dept. of Diagnostic Radiology, Yale School of
+#BIOIMAGESUITE_LICENSE  Medicine, http:#www.bioimagesuite.org.
+#BIOIMAGESUITE_LICENSE  
+#BIOIMAGESUITE_LICENSE  This program is free software; you can redistribute it and/or
+#BIOIMAGESUITE_LICENSE  modify it under the terms of the GNU General Public License version 2
+#BIOIMAGESUITE_LICENSE  as published by the Free Software Foundation.
+#BIOIMAGESUITE_LICENSE  
+#BIOIMAGESUITE_LICENSE  This program is distributed in the hope that it will be useful,
+#BIOIMAGESUITE_LICENSE  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#BIOIMAGESUITE_LICENSE  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#BIOIMAGESUITE_LICENSE  GNU General Public License for more details.
+#BIOIMAGESUITE_LICENSE  
+#BIOIMAGESUITE_LICENSE  You should have received a copy of the GNU General Public License
+#BIOIMAGESUITE_LICENSE  along with this program; if not, write to the Free Software
+#BIOIMAGESUITE_LICENSE  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#BIOIMAGESUITE_LICENSE  See also  http:#www.gnu.org/licenses/gpl.html
+#BIOIMAGESUITE_LICENSE  
+#BIOIMAGESUITE_LICENSE  If this software is modified please retain this statement and add a notice
+#BIOIMAGESUITE_LICENSE  that it had been modified (and by whom).  
+#BIOIMAGESUITE_LICENSE 
+#BIOIMAGESUITE_LICENSE  -----------------------------------------------------------------------------------
+
+
+
+
+
+#Force install prefix
+IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  IF (WIN32)
+    SET (CMAKE_INSTALL_PREFIX "c:/yale" CACHE PATH "Install Path" FORCE)
+  ELSE (WIN32)
+    SET (CMAKE_INSTALL_PREFIX  "/usr/local" CACHE PATH "Install Path" FORCE)
+  ENDIF (WIN32)
+ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
+SET (BIOIMAGESUITE3_INSTALL_EXTRAPATH  
+  bioimagesuite${BIOIMAGESUITE3_VERSION_MAJOR}${BIOIMAGESUITE3_VERSION_MINOR}
+  CACHE PATH
+  "Extra path for bioimagesuite installation (appended to CMAKE_INSTALL_PREFIX")
+MARK_AS_ADVANCED(BIOIMAGESUITE3_INSTALL_EXTRAPATH)
+
+# Excluded TCL Code 
+
+# Windows Stuff
+IF (WIN32)
+STRING(REGEX REPLACE "/" "\\\\"  BIOIMAGESUITE3_BINARY_DIR_BAT ${BIOIMAGESUITE3_BINARY_DIR})
+STRING(REGEX REPLACE "/" "\\\\"  BIOIMAGESUITE3_SOURCE_DIR_BAT ${BIOIMAGESUITE3_SOURCE_DIR})
+# Excluded TCL Code 
+STRING(REGEX REPLACE "/" "\\\\"  EXECUTABLE_OUTPUT_PATH_BAT ${EXECUTABLE_OUTPUT_PATH})
+STRING(REGEX REPLACE "/" "\\\\"  LIBRARY_OUTPUT_PATH_BAT ${LIBRARY_OUTPUT_PATH})
+STRING(REGEX REPLACE "/" "\\\\"  VTK_DIR_BAT ${VTK_DIR})
+# end of windows stuff
+ENDIF(WIN32)
+
+
+# Excluded TCL Code 
+# ------------------------------------
+#    Common Link Libaries
+# ------------------------------------
+
+IF (WIN32)
+  SET (BUILD TYPE "Release")
+  SET (CMAKE_CXX_WARNING_LEVEL "1")
+ENDIF (WIN32)
+
+SET (BIOIMAGESUITE3_COMMON_LIBS
+  vtkIO
+  vtkHybrid
+  vtkCommon
+  vtkCommonTCL
+  vtkRendering
+  vtkFiltering
+  vtkImaging
+  vtkGraphics
+  vtkGraphicsTCL
+  vtkRendering
+  vtkRenderingTCL
+  vtkWidgets
+  vtkWidgetsTCL
+
+)
+
+
+SET (BIOIMAGESUITE3_COMMON_JAVALIBS
+  vtkImaging
+  vtkImagingJava
+  vtkGraphics
+  vtkGraphicsJava
+  vtkFiltering
+  vtkFilteringJava
+  vtkCommon
+  vtkCommonJava
+)
+
+
+IF (NOT VTK_USE_SYSTEM_ZLIB)
+   SET (BIOIMAGESUITE3_COMMON_LIBS
+      ${BIOIMAGESUITE3_COMMON_LIBS}
+      ${VTK_ZLIB_LIBRARIES}
+   )
+ENDIF (NOT VTK_USE_SYSTEM_ZLIB)
+
+# -----------------------------------------------------------------------------------------------
+
+SET (BIOIMAGESUITE_USING_MINGW 0)
+SET (BIOIMAGESUITE_USING_VS 0)
+SET (LIBRARY_OUTPUT_PATH ${BIOIMAGESUITE3_BINARY_DIR}/lib CACHE PATH "Single output directory for building all libraries.")
+
+
+SET (EXECUTABLE_OUTPUT_PATH ${BIOIMAGESUITE3_BINARY_DIR}/bin CACHE PATH "Single output directory for building all executables.")
+
+
+IF (UNIX)
+  SET (LIBEXTRA  "")
+  IF (${CMAKE_CXX_FLAGS} MATCHES ".+m32.+")
+    SET (LIBEXTRA  "")
+  ELSE(${CMAKE_CXX_FLAGS} MATCHES ".+m32.+")
+    SET (LIBEXTRA ${CMAKE_SYSTEM_PROCESSOR})
+  ENDIF(${CMAKE_CXX_FLAGS} MATCHES ".+m32.+")
+
+ELSE(UNIX)
+  GET_FILENAME_COMPONENT(CL ${CMAKE_CXX_COMPILER} NAME ) 
+  IF (${CL} MATCHES "cl")
+    SET (BIOIMAGESUITE_USING_VS 1)
+  ELSE (${CL} MATCHES "cl")
+    SET (BIOIMAGESUITE_USING_MINGW 1)
+  ENDIF (${CL} MATCHES "cl")
+ENDIF(UNIX)
+
+#MESSAGE("Copying dynamic libraries to ${BIOIMAGESUITE3_COPYLIBPATH} = ${BIOIMAGESUITE3_SOURCE_DIR}/bioimagesuite/lib")
+
+
+SET (BIS_UNIXBUILD 0)
+IF (UNIX)
+   SET (BIS_UNIXBUILD 1)
+ENDIF(UNIX)
+
+IF (BIOIMAGESUITE_USING_MINGW)
+   SET (BIS_UNIXBUILD 1)
+ENDIF (BIOIMAGESUITE_USING_MINGW)
+
+# -----------------------------------------------------------------------------------------------
+IF(UNIX AND NOT APPLE)
+OPTION(BIOIMAGESUITE3_INSTALL_ICONS
+  "Install Icons for GNOME/KDE"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_INSTALL_ICONS)
+ENDIF(UNIX AND NOT APPLE)
+# -----------------------------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------------------------
+OPTION(BIOIMAGESUITE3_USE_MYSQL_DATABASE_MODULE
+  "Use MySQL Database Module"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_MYSQL_DATABASE_MODULE)
+
+
+
+OPTION(BIOIMAGESUITE3_USE_JAVA
+  "Create JAVA Libraries -- experimental"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_JAVA)
+
+
+OPTION(BIOIMAGESUITE3_MOUSEREG
+  "Build Whole Body Mouse Registration Module"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_MOUSEREG)
+
+OPTION(BIOIMAGESUITE3_USE_QT
+  "Build QT Modules"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_QT)
+
+
+
+
+
+# -----------------------------------------------------------------------------------------------
+#
+# Flags for optional packages 
+#
+OPTION(BIOIMAGESUITE3_INSTALL_SOURCE
+  "Create a source code installation as well"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_INSTALL_SOURCE)
+
+OPTION(BIOIMAGESUITE3_CREATE_INSTALLER
+  "Use CPACK or Inno Setup to generate an installer"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_CREATE_INSTALLER)
+
+OPTION(BIOIMAGESUITE3_PACK_BASE
+  "Include base directories (e.g. vtk,itk) in  CPACK installer to create a complete installer"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_PACK_BASE)
+
+# Excluded TCL Code 
+
+OPTION(BIOIMAGESUITE3_USE_CUDA
+  "Enable CUDA-dependent code in BioImage Suite"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_CUDA)
+
+OPTION(BIOIMAGESUITE3_USE_CUDA_ADVANCED
+  "Enable CUDA Capability 1.2 dependent code in BioImage Suite"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_CUDA)
+
+OPTION(BIOIMAGESUITE3_USE_STEREO
+  "Enable Stereo Vision -dependent code in BioImage Suite"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_STEREO)
+
+OPTION(BIOIMAGESUITE3_USE_DBFEM
+  "Enable Dominique's FEM -dependent code in BioImage Suite"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_DBFEM)
+
+OPTION(BIOIMAGESUITE3_USE_VVLINK
+  "Use New Vector Vision Link (7.8)"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_VVLINK)
+
+OPTION(BIOIMAGESUITE3_USE_ABAQUS
+  "ABAQUS is available"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_ABAQUS)
+
+OPTION(BIOIMAGESUITE3_USE_CPPUNIT
+  "CPPUNIT is available"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_CPPUNIT)
+
+OPTION(BIOIMAGESUITE3_USE_APPS
+  "Enable BINARY Executable Legacy Applications"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_APPS)
+
+OPTION(BIOIMAGESUITE3_USE_SYSTEM_LIBS
+  "Use system libraries for Lapack instead of custom ones"
+  OFF)
+
+OPTION(BIOIMAGESUITE3_USE_SYSTEM_NIFTI
+  "Use system libraries for NIFTI instead of custom ones"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_SYSTEM_NIFTI)
+
+OPTION(BIOIMAGESUITE3_USE_SYSTEM_OPENIGTLINK
+  "Use system libraries for OpenIGTLink instead of custom ones"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_SYSTEM_OPENIGTLINK)
+
+OPTION(BIOIMAGESUITE3_USE_SYSTEM_NEWMAT
+  "Use system libraries for NewMAT instead of custom ones"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_USE_SYSTEM_NEWMAT)
+
+
+OPTION(BIOIMAGESUITE3_DEBIAN
+  "Use configuration for Debian/Ubuntu packaging"
+  OFF)
+MARK_AS_ADVANCED(BIOIMAGESUITE3_DEBIAN)
+
+
+IF (BIOIMAGESUITE3_DEBIAN)
+  MESSAGE("++ Using Debian Configuration rules")
+ENDIF (BIOIMAGESUITE3_DEBIAN)
+# -------------------------------------------------
+# Package naming
+OPTION(BIOIMAGESUITE3_SET_COMPILER_NAME
+  "Set name for the compiler used"
+  "")
+MARK_AS_ADVANCED(BIOIMAGESUITE3_SET_COMPILER_NAME)
+
+
+FIND_FILE(BIOIMAGESUITE3_VALGRIND "valgrind")
+IF (BIOIMAGESUITE3_VALGRIND)
+SET(MEMORY_CHECKCOMMAND ${BIOIMAGESUITE3_VALGRIND} FILEPATH)
+ENDIF (BIOIMAGESUITE3_VALGRIND)
+
+IF(BIOIMAGESUITE3_SET_COMPILER_NAME)
+ FIND_FILE(BIOIMAGESUITE3_COMPILER "g++")
+ELSE(BIOIMAGESUITE3_SET_COMPILER_NAME)
+  SET (BIOIMAGESUITE3_COMPILER ${CMAKE_CXX_COMPILER})
+ENDIF(BIOIMAGESUITE3_SET_COMPILER_NAME)
+
+# ------------ BIOIMAGESUITE3 GDCM MODULE ---------------
+FIND_PACKAGE(GDCM REQUIRED)
+INCLUDE(${GDCM_USE_FILE})
+#INCLUDE_DIRECTORIES(${GDCM_INCLUDE_DIRS}/../../include/gdcm-2.0)
+
+
+# ------------ BIOIMAGESUITE3_USE_MYSQL_DATABASE_MODULE ---------------
+
+# Fix this for multiple platforms eventually
+IF(BIOIMAGESUITE3_USE_MYSQL_DATABASE_MODULE)
+ FIND_PATH(MYSQL_INCLUDE_DIR mysql.h)
+IF (WIN32)
+ FIND_FILE(MYSQLLIB "mysqlclient.lib")
+ENDIF(WIN32)
+ENDIF(BIOIMAGESUITE3_USE_MYSQL_DATABASE_MODULE)
+
+
+IF (BIOIMAGESUITE3_USE_CUDA)
+  IF (${CMAKE_VERSION} MATCHES "2.8.*")
+    MESSAGE("Using New FindCUDA.cmake from CMAKE")
+    INCLUDE (${CMAKE_ROOT}/Modules/FindCUDA.cmake)
+  ELSE (${CMAKE_VERSION} MATCHES "2.8.*")
+    MESSAGE("Using Legacy FindCuda.cmake")
+    INCLUDE ( ${BIOIMAGESUITE3_SOURCE_DIR}/CMake/cuda/FindCuda.cmake)
+  ENDIF (${CMAKE_VERSION} MATCHES "2.8.*")
+
+  IF (WIN32)
+    FIND_PATH(CUDA_LINK_LIBRARIES c:/cuda )
+  ELSE (WIN32)
+    FIND_PATH(CUDA_LINK_LIBRARIES /usr/local/cuda/lib)
+  ENDIF(WIN32)
+  
+  LINK_DIRECTORIES(${CUDA_LINK_LIBRARIES})
+
+  INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE}/../include)
+  INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/shared/inc)
+  INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/C/common/inc)
+#  LINK_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/C/common/lib)
+#  LINK_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/shared/lib)
+
+  SET (BIOIMAGESUITE3_COMMON_LIBS
+    ${BIOIMAGESUITE3_COMMON_LIBS}
+    cudart
+    cufft 
+    cusparse
+    cublas
+    cuda
+  )
+# shrUtils32
+
+ENDIF (BIOIMAGESUITE3_USE_CUDA)
+
+
+#------------- STEREO VISION ----------------
+IF (BIOIMAGESUITE3_USE_STEREO)
+  SET (STEREOVISION_SOURCE StereoVision)
+ELSE (BIOIMAGESUITE3_USE_STEREO)
+  SET (STEREOVISION_SOURCE)
+ENDIF (BIOIMAGESUITE3_USE_STEREO)
+
+
+#------------- FEM ----------------
+IF (BIOIMAGESUITE3_USE_DBFEM)
+  SET (DBFEM_SOURCE dbFEM)
+ELSE (BIOIMAGESUITE3_USE_DBFEM)
+  SET (DBFEM_SOURCE)
+ENDIF (BIOIMAGESUITE3_USE_DBFEM)
+
+
+# ------------ BIOIMAGESUITE3_USE_APPS ---------------
+
+IF(BIOIMAGESUITE3_INSTALL_SOURCE)
+  SET (BIOIMAGESUITE3_INSTALL_SRCPATH  
+    bioimagesuite${BIOIMAGESUITE3_VERSION_MAJOR}${BIOIMAGESUITE3_VERSION_MINOR}_${BIOIMAGESUITE3_VERSION_PATCH}_src
+    CACHE PATH
+    "Extra path for bioimagesuite3 source installation (appended to CMAKE_INSTALL_PREFIX")
+  MARK_AS_ADVANCED(BIOIMAGESUITE_INSTALL_SRCPATH)
+ENDIF(BIOIMAGESUITE3_INSTALL_SOURCE)
+
+# ------------ BIOIMAGESUITE3_USE_APPS ---------------
+
+IF (BIOIMAGESUITE3_USE_APPS)
+  SET (BIOIMAGESUITE3_APPLICATIONS oldapps )
+ELSE (BIOIMAGESUITE3_USE_APPS)
+  SET (BIOIMAGESUITE3_APPLICATIONS )	
+ENDIF (BIOIMAGESUITE3_USE_APPS)
+
+# ------------ Include VTK --------------------
+
+INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
+IF (USE_VTK_FILE)
+  INCLUDE (${USE_VTK_FILE})
+ELSE (USE_VTK_FILE)
+  SET (BIOIMAGESUITE3_CAN_BUILD 0)
+ENDIF (USE_VTK_FILE)
+
+# ------------ Include CLAPACK -----------------
+IF(BIOIMAGESUITE3_USE_SYSTEM_LIBS)
+  SET(CLAPACK_LIBRARIES lapack blas f2c)
+  SET (BIOIMAGESUITE3_COMMON_LIBS
+    ${BIOIMAGESUITE3_COMMON_LIBS}
+    ${CLAPACK_LIBRARIES})
+  MESSAGE(INFO
+    " Using System Lapack Library (if installed) ")
+ELSE(BIOIMAGESUITE3_USE_SYSTEM_LIBS)
+  FIND_PACKAGE(CLAPACK)
+  IF(CLAPACK_FOUND)
+    INCLUDE(${CLAPACK_USE_FILE})
+    SET (BIOIMAGESUITE3_COMMON_LIBS
+      ${BIOIMAGESUITE3_COMMON_LIBS}
+      ${CLAPACK_LIBRARIES})
+  ELSE(CLAPACK_FOUND)
+    MESSAGE(FATAL_ERROR
+      "Please specify CLAPACK_DIR ")
+    SET (BIOIMAGESUITE3_CAN_BUILD 0)
+  ENDIF(CLAPACK_FOUND)
+ENDIF(BIOIMAGESUITE3_USE_SYSTEM_LIBS)
+
+
+
+# ------------ Include VVLINK_NEW --------------------
+IF (BIOIMAGESUITE3_USE_VVLINK)
+    SET (VVLINK_API vvlcppapi5)
+ENDIF (BIOIMAGESUITE3_USE_VVLINK)
+
+# ------------ Include ITK  --------------------
+ FIND_PACKAGE(ITK REQUIRED)
+ IF(ITK_FOUND)
+    LINK_DIRECTORIES(${ITK_LIBRARY_DIRS})
+    SET (BIOIMAGESUITE3_COMMON_LIBS
+      ${BIOIMAGESUITE3_COMMON_LIBS}
+      ${ITK_LIBRARIES})
+  ELSE(ITK_FOUND)	
+    MESSAGE(FATAL_ERROR
+      "Please specify ITK_DIR ")
+    SET (BIOIMAGESUITE3_CAN_BUILD 0)
+  ENDIF(ITK_FOUND)
+
+
+# ------------ Standard Stuff from Here on (from vtkMY)  --------------------
+# Build shared libs ?
+# Defaults to the same VTK setting.
+# ---------------------------------------------------------------------------
+IF (USE_VTK_FILE)
+  # Standard CMake option for building libraries shared or static by default.
+  OPTION(BUILD_SHARED_LIBS 
+    "Build with shared libraries." 
+    ${VTK_BUILD_SHARED_LIBS})
+  SET(BIOIMAGESUITE3_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+ENDIF (USE_VTK_FILE)
+
+
+#
+# -------------------------------------------------------------------------------------------------
+# Default Output Paths
+# -------------------------------------------------------------------------------------------------
+
+SET (CMAKE_VERBOSE_MAKEFILE:BOOL TRUE)
+
+# -------------------------------------------------------------------------------------------------
+# Print some information to a common file
+# -------------------------------------------------------------------------------------------------
+SET (INFOFILE ${BIOIMAGESUITE3_BINARY_DIR}/bioimagesuite_settings.tcl)
+FILE(WRITE  ${INFOFILE} "#BioImage Suite Build Directories\n")
+FILE(APPEND ${INFOFILE} "set cmake(VTK_DIR) \"" ${VTK_DIR} "\"\n")
+FILE(APPEND ${INFOFILE} "set cmake(ITK_DIR) \"" ${ITK_DIR} "\"\n")
+FILE(APPEND ${INFOFILE} "set cmake(CXX) \"" ${CMAKE_CXX_COMPILER} "\"\n")
+FILE(APPEND ${INFOFILE} "set cmake(CXXFLAGS) \"" ${CMAKE_CXX_FLAGS} "\"\n")
+FILE(APPEND ${INFOFILE} "set cmake(OS)  \""  ${CMAKE_SYSTEM_NAME}  "\"\n")
+FILE(APPEND ${INFOFILE} "set cmake(PROC)  \""  ${CMAKE_SYSTEM_PROCESSOR}  "\"\n")
+FILE(APPEND ${INFOFILE} "set cmake(INSTALLPREFIX)  \""  ${CMAKE_INSTALL_PREFIX}  "\"\n")
+FILE(APPEND ${INFOFILE} "set cmake(VERSION)  \"${BIOIMAGESUITE3_VERSION_MAJOR}${BIOIMAGESUITE3_VERSION_MINOR}${BIOIMAGESUITE3_VERSION_PATCH}\"\n")
+
+
+
+
+IF (APPLE)
+  IF (VTK_USE_CARBON)
+    FILE(APPEND ${INFOFILE} "set cmake(OSEXTRA) Carbon")
+  ELSE (VTK_USE_CARBON)
+    FILE(APPEND ${INFOFILE} "set cmake(OSEXTRA) X11")	
+  ENDIF (VTK_USE_CARBON)
+ELSE (APPLE)
+  FILE(APPEND ${INFOFILE} "set cmake(OSEXTRA) \"\"")	
+ENDIF (APPLE)
+	
+FILE(APPEND ${INFOFILE} "\nset cmake(SYSTEM) \"" ${CMAKE_SYSTEM}  "\"\n")
+
+SET (FILELIST ${BIOIMAGESUITE3_BINARY_DIR}/cppfilelist.tcl)
+FILE(WRITE  ${FILELIST} "#CPP File List\n")
+FILE(APPEND ${FILELIST} "#Path\n")
+IF (BIOIMAGESUITE3_DEBIAN)
+   FILE(APPEND ${FILELIST} "${BIOIMAGESUITE3_SOURCE_DIR}/debian/tmp/${CMAKE_INSTALL_PREFIX}/${BIOIMAGESUITE3_INSTALL_SRCPATH}\n")
+ELSE (BIOIMAGESUITE3_DEBIAN)
+   FILE(APPEND ${FILELIST} "${CMAKE_INSTALL_PREFIX}/${BIOIMAGESUITE3_INSTALL_SRCPATH}\n")
+ENDIF(BIOIMAGESUITE3_DEBIAN)
+FILE(APPEND ${FILELIST} "#Files\n")
+
+SET (FILELIST2 ${BIOIMAGESUITE3_BINARY_DIR}/tclfilelist.tcl)
+FILE(WRITE  ${FILELIST2} "#TCL File List\n")
+FILE(APPEND ${FILELIST2} "#Path\n")
+IF (BIOIMAGESUITE3_DEBIAN)
+   FILE(APPEND ${FILELIST2} "${BIOIMAGESUITE3_SOURCE_DIR}/debian/tmp/${CMAKE_INSTALL_PREFIX}\n")
+ELSE (BIOIMAGESUITE3_DEBIAN)
+   FILE(APPEND ${FILELIST2} "${CMAKE_INSTALL_PREFIX}\n")
+ENDIF(BIOIMAGESUITE3_DEBIAN)
+FILE(APPEND ${FILELIST2} "#Files\n")
+
+SET (SCRIPTFILELIST ${BIOIMAGESUITE3_BINARY_DIR}/scriptfiles.txt)
+FILE(WRITE  ${SCRIPTFILELIST} "#SCRIPT File List\n")
+FILE(APPEND ${SCRIPTFILELIST} "#Path\n")
+IF (BIOIMAGESUITE3_DEBIAN)
+   FILE(APPEND ${SCRIPTFILELIST} "${BIOIMAGESUITE3_SOURCE_DIR}/debian/tmp/${CMAKE_INSTALL_PREFIX}/${BIOIMAGESUITE3_INSTALL_EXTRAPATH}\n")
+ELSE (BIOIMAGESUITE3_DEBIAN)
+   FILE(APPEND ${SCRIPTFILELIST} "${CMAKE_INSTALL_PREFIX}/${BIOIMAGESUITE3_INSTALL_EXTRAPATH}\n")
+ENDIF(BIOIMAGESUITE3_DEBIAN)
+FILE(APPEND ${SCRIPTFILELIST} "#VTK_DIR\n")
+FILE(APPEND ${SCRIPTFILELIST} "${VTK_DIR}\n")
+FILE(APPEND ${SCRIPTFILELIST} "#ITK_DIR\n")
+FILE(APPEND ${SCRIPTFILELIST} "${ITK_DIR}\n")
+FILE(APPEND ${SCRIPTFILELIST} "#Files\n")
+
+
+
+IF (BIOIMAGESUITE_USING_VS)
+  STRING(REGEX REPLACE "\\\\" "/" WIN_PATH "${EXECUTABLE_OUTPUT_PATH}")
+ENDIF(BIOIMAGESUITE_USING_VS)
+
+
+
+
+SET (F3 ${BIOIMAGESUITE3_BINARY_DIR}/bioimagesuitepostinstall.cmake)
+FILE(WRITE   ${F3} "#${CMAKE_INSTALL_PREFIX}\n")
+FILE(APPEND  ${F3} "MESSAGE(\"++ Executing BioImage Suite Postinstall Script\")\n\n")
+
+FILE(APPEND ${F3} "execute_process(\n")
+FILE(APPEND ${F3} "COMMAND ${BIOIMAGESUITE3_BINARY_DIR}/bisexec\n")
+FILE(APPEND ${F3} "${BIOIMAGESUITE3_SOURCE_DIR}/installtools/bis_fix.tcl ${BIOIMAGESUITE3_BINARY_DIR}/cppfilelist.tcl ${BIOIMAGESUITE3_BINARY_DIR}/tclfilelist.tcl ${BIOIMAGESUITE3_BINARY_DIR}/scriptfiles.txt on\n")
+FILE(APPEND ${F3} "WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX})\n\n")
+
+
+FILE(APPEND ${F3} "execute_process(\n")
+IF (BIOIMAGESUITE_USING_VS)
+  FILE(APPEND ${F3} "COMMAND ${WIN_PATH}/Release/bis_fixscripts.exe\n")
+ELSE(BIOIMAGESUITE_USING_VS)
+  FILE(APPEND ${F3} "COMMAND ${EXECUTABLE_OUTPUT_PATH}/bis_fixscripts\n")
+ENDIF(BIOIMAGESUITE_USING_VS)
+FILE(APPEND ${F3} "-install ${BIOIMAGESUITE3_BINARY_DIR}/scriptfiles.txt\n")
+FILE(APPEND ${F3} "WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX})\n\n")
+
+
+install (FILES ${BIOIMAGESUITE3_BINARY_DIR}/scriptfiles.txt DESTINATION ${BIOIMAGESUITE3_INSTALL_EXTRAPATH}/lib)
+install (FILES ${BIOIMAGESUITE3_BINARY_DIR}/tclfilelist.tcl DESTINATION ${BIOIMAGESUITE3_INSTALL_EXTRAPATH}/lib)
+
+
+# Excluded TCL Code 
+
+#IF (APPLE)
+#	FILE(APPEND ${F3} "execute_process(\n")
+#	FILE(APPEND ${F3} "COMMAND ${CMAKE_INSTALL_PREFIX}/${BIOIMAGESUITE3_INSTALL_EXTRAPATH}/bin/FixLibPaths.csh\n")
+#	FILE(APPEND ${F3} " ${CMAKE_INSTALL_PREFIX}/${BIOIMAGESUITE3_INSTALL_EXTRAPATH}/lib)\n")
+#ENDIF (APPLE)
+
+
+IF(UNIX AND NOT APPLE)
+  IF(BIOIMAGESUITE3_INSTALL_ICONS)
+    configure_file( ${BIOIMAGESUITE3_SOURCE_DIR}/Utilities/bis_menu.desktop.in
+      ${BIOIMAGESUITE3_BINARY_DIR}/bis_menu.desktop )
+    install( FILES ${CMAKE_BINARY_DIR}/bis_menu.desktop 
+      DESTINATION "/usr/share/applications/" )
+    configure_file( ${BIOIMAGESUITE3_SOURCE_DIR}/Utilities/bis_console.desktop.in
+      ${BIOIMAGESUITE3_BINARY_DIR}/bis_console.desktop )
+    install( FILES ${CMAKE_BINARY_DIR}/bis_console.desktop
+      DESTINATION "/usr/share/applications/" )
+    install( FILES ${BIOIMAGESUITE3_SOURCE_DIR}/bioimagesuite/images/bioimagesuite.png
+      DESTINATION "/usr/share/pixmaps" )
+  ENDIF(BIOIMAGESUITE3_INSTALL_ICONS)
+ENDIF(UNIX AND NOT APPLE)
+
+

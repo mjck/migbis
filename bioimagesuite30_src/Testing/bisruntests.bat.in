@@ -1,0 +1,87 @@
+@echo off
+REM  --------------------------------------------------------------------------------------
+REM  This file is part of the BioImage Suite Software Package. (seee www.bioimagesuite.org)
+REM  --------------------------------------------------------------------------------------
+REM  Arguments (all optional)
+REM  First = Type either Experiemental or Nightly
+REM  Second = DISPLAY setting
+REM  Third = Options on tests (e.g. 1-2)
+
+
+
+REM bis_fix_script_begin
+SET TST_BINARY_DIR=@BIOIMAGESUITE3_BINARY_DIR_BAT@
+SET TST_SOURCE_DIR=@BIOIMAGESUITE3_SOURCE_DIR_BAT@
+SET TST_TEST_DIR=@BIOIMAGESUITE3_TEST_DIR_BAT@
+SET TST_TMP_DIR=@BIOIMAGESUITE3_TESTING_TEMPDIR_BAT@
+SET BINPATH=@EXECUTABLE_OUTPUT_PATH_BAT@
+SET SVNUPDATE=@BIOIMAGESUITE3_TESTING_DOSVNUPDATE@
+SET CLEAN=@BIOIMAGESUITE3_TESTING_DOCLEANBUILD@
+SET CTEST=@CMAKE_CTEST_COMMAND_BAT@
+SET SVN=@SVNCOMMAND_BAT@
+REM bis_fixscript_end
+
+SET TESTMODE=Experimental
+SET TESTSTORUN=""
+IF NOT (%1)==() SET TESTMODE=%1
+IF NOT (%2)==() SET TESTSTORUN=-I %2 
+IF NOT (%TST_TMP_DIR%) == (BIOIMAGESUITE3_TESTING_TEMPDIR-NOTFOUND) GOTO TAG0
+
+SET TST_TMP_DIR=""
+
+:TAG0
+
+SET BISTEMP=%TST_TMP_DIR%
+
+echo ---------------------------------------------------------------------------
+echo Beginning tests 
+echo --
+
+IF NOT %SVNUPDATE% == ON GOTO STEP1
+    echo Updating Test Data at %TST_TEST_DIR%
+    echo --
+
+    cd %TST_TEST_DIR%
+    %SVN% cleanup
+    %SVN% update
+
+    echo Updating Source Tree at %TST_SOURCE_DIR% 
+    echo --
+    cd %TST_SOURCE_DIR%
+    %SVN% cleanup
+    %SVN% update
+
+:STEP1
+
+cd %TST_BINARY_DIR%
+
+if NOT (%TESTMODE%) == (Nightly)  SET TESTMODE=Experimental
+
+
+echo ---------------------------------------------------------------------------
+echo Beginning %CTEST% Testing as *%TESTMODE%* 
+echo Flags=*%TESTSTORUN%* at %TST_BINARY_DIR%
+echo ---------------------------------------------------------------------------
+echo on
+
+%CTEST% -D %TESTMODE%Start
+echo --------------------
+%CTEST% -D %TESTMODE%Configure -VV
+echo --------------------
+%CTEST% -D %TESTMODE%Build -VV
+echo --------------------
+%CTEST% -D %TESTMODE%Test %TESTSTORUN%
+echo --------------------
+%CTEST% -D %TESTMODE%Submit
+
+echo ---------------------------------------------------------------------------
+echo Done
+echo ---------------------------------------------------------------------------
+
+IF  (%BISTEMP%) == () GOTO END
+IF  (%BISTEMP%) == ("") GOTO END
+
+echo Should be Deleting %BISTEMP%
+echo Calling something like del /f /s  %BISTEMP%
+
+:END

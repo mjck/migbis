@@ -1,0 +1,212 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+  <title>BioImage Suite Source Code Information</title>
+
+
+</head>
+
+
+<body>
+
+<h1><a name="Installation_Overview"></a>1.
+Overview</h1>
+
+As stated in the <a
+href="http://www.bioimagesuite.org/download/Install_beta.html">3.0beta installation
+page</a>, installing BioImage Suite consists of twp parts.
+<span style="font-weight: bold;"></span>
+<ol>
+
+  <li>Installation of a pre-compiled binary bioimagesuite3_base
+  distribution. This includes: </li>
+
+<ul>
+<LI> The CLapack (v3) numerical library (original
+source=clapack.tgz.gz)</LI>
+<LI> CMake Cross-Platform Build System 2.6.1 (cmake-2.6.1.tar.gz)</LI>
+<LI> GDCM Dicom Library 2.0.10 (gdcm-2.0.10.zip)</LI>
+<LI> The Insight Toolkit v 3.10 (InsightToolkit-3.10.0.zip)</LI>
+<LI> VTK 5.2  (vtk_5.2_src_patched.zip)</LI>
+<LI> MYSQL client libraries (mysql-5.0.51a.tar.gz)</LI>
+<LI> Tcl/Tk 8.4.19 (tcl8.4.19-src.tar.gz/tk8.4.19-src.tar.gz) with the following extensions:
+<UL>
+<LI> Incr Tcl/Incr Tk 3.3 (itcl3.3.tar.gz/itk3.3.tar.gz) and IWidgets
+(iwidgets4.0.1.tar.gz)</LI>
+<LI> Tcllib 1.10 (tcllib-1.10.tar.gz)</LI>
+<LI> Sqlite 3_6_2 (sqlite-3_6_2-tea.tar.gz) </LI>
+<LI> Tile 0.8.2 (tile-0.8.2.tar.gz) </LI>
+<LI> TkCon 2.4 (tkcon-2.4.tar.gz)</LI>
+</UL>
+The original source files for these can be found at <a
+href="http://bioimagesuite.org/download/3.0/prereq/">this location</a>. Use
+the same username/password as for downloading BioImage Suite itself.
+
+All of the Open Source software listed above compiled without
+changes on all platforms.<br> <br>
+
+</UL>
+
+  <li>Installation of the BioImage Suite software package itself.</li>
+
+</ol>
+
+
+BioImage Suite consists of a mixture of C++ libraries and .tcl code.
+&nbsp;The development process is described in the lecture notes
+from a
+seminar taught by Xenios Papademetris (<a href="http://bioimagesuite.org/vtkbook5/index.html">Introduction
+to Programming
+for Medical Image Analysis with VTK</a>)<br>
+
+<br>
+
+The BioImage Source code is released under the <a href="BioImageSuite_License.txt">GNU General Public License
+(v2).</a>
+<br>
+
+<hr style="width: 100%; height: 2px;">
+<h1><a name="Compiling"></a>2. Compiling
+BioImage Suite</h1>
+
+<h4> Notes </h4>
+
+<p>
+Note that the binary bioimagesuite3_base distribution that comes with
+BioImage Suite is needed for compiling this. While the contents of these are open source,
+it is easier to use the precompiled versions to avoid unnecessary
+troubles. </p>
+
+<p><b> BioImage Suite is an application not a toolkit.
+While we provide the
+source code under the terms of the GPL, support for compiling this is
+limited to this document!</b> A certain familiarity with the UNIX
+operating system and cmake is assumed. 
+
+These instructions are for Linux/Mac OS X and on MS-Windows when using the
+MSYS development environment. If using Visual Studio 2008 see comments in 
+
+<span style="color: red;">red</span> below. Essentially you need to open a
+dos box (cmd.exe) and in steps 2-3 below edit the file setpaths.bat and
+invoke it. </p>
+
+
+<h4><a name="Steps"></a>Steps</h4>
+
+<ol>
+
+  <p></p>
+
+  <li> Place the BioImage Suite source code into a directory we
+will refer to&nbsp;as ${MYSRC}.</li>
+
+  <li>Edit the setpaths.csh or setpaths.sh file to reflect their
+new location. i.e. in setpaths.csh change the line
+    <pre>setenv BASE ${HOME}/src/bioimagesuite<br></pre>
+
+    <p>to something like
+${MYSRC}/bioimagesuite_src/bioimagesuite ... use <b>absolute
+paths</b>. </p>
+
+<span style="color: red;"><p>On MS-Windows if using Visual Studio edit the file setpaths.bat instead.</p></span>
+
+  </li>
+
+  <li> Source the appropriate setpaths file (much like when
+running the software) to set all environment variables i.e.
+    <pre>source ${MYSRC}/bioimagesuite/setpaths.csh </pre>
+
+(or setpaths.sh if using
+one of the sh/ksh/bash shells. or modify setpaths.bat on MS-Windows). <br>
+
+<span style="color: red;"><p>On MS-Windows, if using Visual Studio, execute the file setpaths.bat
+instead.</p></span>
+
+    <br>
+
+  </li>
+
+  <li> <B>Optionally:</B> On Unix-like setups, set the following environment variables</li>
+<UL>
+<LI> CC - this is the C compiler you want to use (if it is not the
+default). For example on Centos 5.x we use CC=gcc34.</LI>
+
+<LI> CXX - this is the C++ compiler you want to use (if it is not the
+default). For example on Centos 5.x we use CC=g++34.</LI>
+
+<LI> CFLAGS - this sets the defaults C options. Often set to either "-fPIC"
+or "-fPIC -m32" (-m32 forces 32 bit compilation on 64-bit machines).
+
+<LI> CXXFLAGS - set identical to CFLAGS.
+</ul>
+
+  <li>Configure the build</li>
+
+  <pre>cd ${MYSRC}/build<br>ccmake ..<br></pre>
+
+On MS-Windows type
+<span style="color: red;"> <pre>cmakesetup ..</pre> instead of ccmake.</span>
+
+  <p>You may also need to specify the positions of vtk, itk etc.
+If you are using the precompiled distributions, this is all taken care
+of for you. If not you will need to specify</p>
+
+
+
+  <li>Compile</li>
+
+    <p>Simply type make </p>
+
+<p><span style="color: red;">On MS-Windows at this point use Visual Studio to build the project BIOIMAGESUITE3.sln.</span></p>
+
+  <li> To run from the source tree build version </li>
+
+    <pre>bis.tcl<br></pre>
+
+    <p>To verify that this is the source build click on the
+"Which"
+button on the bottom the main bis.tcl application. If it says something
+like ${MYSRC}/bioimagesuite then all is good.&nbsp;</p>
+
+  </ul>
+
+</ol>
+
+<hr>
+<h1>Additional Notes</h1>
+
+BioImage Suite is an integrated image analysis software suite developed at
+Yale University. We acknowledge support from the <a
+href="http://www.nibib.nih.gov">National Institutes of Health
+(NIH)/National Institute of Biomedical Imaging and Bioengineering
+(NIBIB)</a> under grant R01 EB006494.  If you are using BioImage Suite for
+a paper please add something like this in the acknowledgment section.
+<pre>Image analysis performed using the BioImage Suite software suite. This
+is supported in part by the NIH-NIBIB under grant R01 EB006494,
+Papademetris, X. (PI).<br></pre>
+
+It will help us keep the project funded. For the reference section use
+something like 
+
+<pre>
+BioImage Suite: An integrated medical image analysis suite.
+ X. Papademetris, M. Jackowski, A. Joshi, D. Scheinost,
+I. Murphy, H Okuda, R.T. Constable and L.H Staib. 
+
+Section of Bioimaging Sciences, Dept. of Diagnostic Radiology, 
+Yale School of Medicine. 
+www.bioimagesuite.org
+</pre>
+
+<hr>
+<br>
+
+<br>
+
+<center>
+<b> For more information see the BioImage Suite web-page <a href="http://www.bioimagesuite.org">
+www.bioimagesuite.org</a></b>
+</center>
+
+</body>
+</html>

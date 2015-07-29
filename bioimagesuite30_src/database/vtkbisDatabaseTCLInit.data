@@ -1,0 +1,14 @@
+vtkbisDatabaseTCL
+vtkbisDatabase
+vtkbisBaseProcedure
+vtkbisPatient
+vtkbisProtocol
+vtkbisQuery
+vtkbisVisit
+vtkbisSeries
+vtkbisStudy
+vtkbisInjection
+vtkimSQLite
+vtkbisSQLiteDatabase
+vtkbisFilenameTable
+vtkbisAlgorithmTable
