@@ -201,6 +201,8 @@ macro(bis_sourcelist_full PATHNAME LIBNAME FILEHANDLE EXTRAPATH)
 
   FILE(APPEND ${FILEHANDLE} "#-------------------------\n# ** ${LIBNAME} \n#-----------------------------\n")
   
+  SET (HEADERLIST )
+
   SET (COMPLIST 
     ${KITEXTRAFILES}
     ${PATHNAME}/CMakeLists.txt
@@ -244,10 +246,15 @@ macro(bis_sourcelist_full PATHNAME LIBNAME FILEHANDLE EXTRAPATH)
       SET(HEADERNAME ${BIOIMAGESUITE3_SOURCE_DIR}/${PATHNAME}/${HEADER})
       #message("**************** header=${HEADERNAME}")
       IF (EXISTS ${HEADERNAME})
-	SET(COMPLIST 
-	  ${COMPLIST}
-	  ${PATHNAME}/${HEADER}
-	  )
+      	SET(COMPLIST 
+      	  ${COMPLIST}
+      	  ${PATHNAME}/${HEADER}
+      	  )
+
+        SET(HEADERLIST
+          ${HEADERLIST}
+          ${HEADERNAME}
+          )  
       ELSE (EXISTS ${HEADERNAME})
 	
       ENDIF (EXISTS ${HEADERNAME})
@@ -269,10 +276,12 @@ macro(bis_sourcelist_full PATHNAME LIBNAME FILEHANDLE EXTRAPATH)
       ${item2})
   ENDFOREACH (item ${COMPLIST})
   
+  install (FILES ${HEADERLIST} DESTINATION ${BIOIMAGESUITE3_INSTALL_EXTRAPATH}/include)
+
   IF (BIOIMAGESUITE3_INSTALL_SOURCE)
     FOREACH (item ${COMPLIST2})
       GET_FILENAME_COMPONENT(EPATH ${item} PATH )        
-      #      message("installing ${item}  in ${BIOIMAGESUITE3_INSTALL_EXTRAPATH}/${PATHNAME}/${EPATH}")
+            #message("installing ${item}  in ${BIOIMAGESUITE3_INSTALL_EXTRAPATH}/${PATHNAME}/${EPATH}")
       install(FILES ${item}  DESTINATION ${BIOIMAGESUITE3_INSTALL_SRCPATH}/${PATHNAME}/${EPATH})
     ENDFOREACH (item ${COMPLIST2})
   ENDIF (BIOIMAGESUITE3_INSTALL_SOURCE)
@@ -305,7 +314,12 @@ endmacro(bis_simplesourcelist)
 # --------------------------------------------------------------------------------------------------
 macro(bis_complex PATHNAME LIBNAME  FILEHANDLE)
 
-  bis_static(${LIBNAME})
+  IF (BIOIMAGESUITE3_BUILD_SHARED_LIBS)
+    bis_dynamic(${LIBNAME})
+  ELSE (BIOIMAGESUITE3_BUILD_SHARED_LIBS)
+    bis_static(${LIBNAME})
+  ENDIF (BIOIMAGESUITE3_BUILD_SHARED_LIBS)
+
   bis_wraplibraries(${LIBNAME})
   bis_sourcelist(${PATHNAME} ${LIBNAME}  ${FILEHANDLE})
   
