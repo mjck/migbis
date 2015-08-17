@@ -1,6 +1,6 @@
 #CPP File List
 #Path
-/usr/local/
+/usr/local/bioimagesuite30_1_src
 #Files
 #-------------------------
 # ** installtools 
