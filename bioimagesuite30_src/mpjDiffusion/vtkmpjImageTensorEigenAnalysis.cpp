@@ -203,7 +203,7 @@ void vtkmpjImageTensorEigenAnalysis::ExecuteWithReducedTensor(vtkImageData *inpu
 	      t[2][1] = t[1][2] = in->GetComponent(index, 4); /* Dyz */	      
 	      t[2][2] = in->GetComponent(index, 5);           /* Dzz */
 
-	    } else {
+	    } else if (this->Ordering == VTK_MPJ_TENSOR_XXYYZZXYYZXZ) {
 	      
 	      t[0][0] = in->GetComponent(index, 0);           /* Dxx */
 	      t[1][0] = t[0][1] = in->GetComponent(index, 3); /* Dxy */
@@ -212,7 +212,16 @@ void vtkmpjImageTensorEigenAnalysis::ExecuteWithReducedTensor(vtkImageData *inpu
 	      t[2][1] = t[1][2] = in->GetComponent(index, 4); /* Dyz */	      
 	      t[2][2] = in->GetComponent(index, 2);           /* Dzz */
 
+	    } else {
+
+	      t[0][0] = in->GetComponent(index, 5);           /* Dxx */
+	      t[1][0] = t[0][1] = in->GetComponent(index, 3); /* Dxy */
+	      t[2][0] = t[0][2] = in->GetComponent(index, 4); /* Dxz */	      
+	      t[1][1] = in->GetComponent(index, 0);           /* Dyy */
+	      t[2][1] = t[1][2] = in->GetComponent(index, 1); /* Dyz */	      
+	      t[2][2] = in->GetComponent(index, 2);           /* Dzz */
 	    }
+
 	    
 	    // determine its eigenvectors and eigenvalues	      
 	    (void) vtkMath::Jacobi(t,w,v);

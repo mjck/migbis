@@ -16,7 +16,7 @@
 
 /* -- vtkmpjImageTensorEigenAnalysis.h 
    
-      Marcel Jackowski, 2002
+      Marcel Jackowski, 2016
 
       This class computes the eigenvalues and eigenvectors of a
       symmetric tensor image.
@@ -42,6 +42,7 @@
 // Ordering
 #define VTK_MPJ_TENSOR_XXXYXZYYYZZZ 0 
 #define VTK_MPJ_TENSOR_XXYYZZXYYZXZ 1
+#define VTK_MPJ_TENSOR_YYYZZZXYXZXX 2
 
 #include "vtkpxSimpleImageToImageFilter.h"
 #include "vtkFloatArray.h"

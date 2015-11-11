@@ -4155,6 +4155,8 @@ itcl::body mpjtensoranalysis::CreateTensorControl { base } {
     $tensor_ordering configure -command [ itcl::code $this tensor_ordering_cb ]
     $tensor_ordering insert 0 "xx-xy-xz-yy-yz-zz"
     $tensor_ordering insert 1 "xx-yy-zz-xy-yz-xz"
+    $tensor_ordering insert 2 "yy-yz-zz-xy-xz-xx"
+
     pack $tensor_ordering -side right -padx 5
     set widget_list(tensor_ordering) $tensor_ordering
 
