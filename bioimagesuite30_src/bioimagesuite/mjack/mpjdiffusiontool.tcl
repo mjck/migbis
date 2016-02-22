@@ -34,7 +34,7 @@ package require mpjfibertracking 1.2
 package require mpjsheettracking 1.0
 package require mpjfibertrackingold 1.2
 package require mpjcardiacanalysis 1.2
-#package require mpjconnectivity 1.0 
+package require mpjconnectivity 1.0 
 #option add *textBackground seashell
 
 wm withdraw .
@@ -60,6 +60,7 @@ $mb add command -label "Fiber tracking (New)" -command { mpjfibertracking_new $b
 $mb add command -label "Fiber tracking (Old)" -command { mpjfibertrackingold_new $breg }
 $mb add command -label "Sheet tracking" -command { mpjsheettracking_new $breg }
 $mb add command -label "Cardiac analysis" -command { mpjcardiacanalysis_new $breg }
+$mb add command -label "Connectivity analysis" -command { mpjconnectivity_new $breg }
 
 global pxtcl_pref_array
 
@@ -131,5 +132,14 @@ proc mpjcardiacanalysis_new { breg } {
     $cardiacanal Initialize [ $breg GetBaseWidget ].[ pxvtable::vnewobj ]
     $breg AddControl $cardiacanal
     $cardiacanal ShowWindow
+
+}
+
+proc mpjconnectivity_new { breg } {
+
+    set connectanal [ mpjconnectivity \#auto $breg ]
+    $connectanal Initialize [ $breg GetBaseWidget ].[ pxvtable::vnewobj ]
+    $breg AddControl $connectanal
+    $connectanal ShowWindow
 
 }

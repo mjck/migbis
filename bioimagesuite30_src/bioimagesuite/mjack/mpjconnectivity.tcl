@@ -1,4 +1,8 @@
 # -----------------------
+#!/bin/sh
+# the next line restarts using wish \
+    exec vtk "$0" "$@"
+
 # Dependencies and path
 # -----------------------
 lappend auto_path [ file dirname [ info script ] ]
@@ -53,10 +57,11 @@ itcl::class mpjconnectivity {
     public method SaveAllResults { }
     public method SaveResult { index }
     public method ClearAllResults { }
-    public method DisplayResult { index }
+    public method DisplayResult { index { mode image } }
     public method ClearDisplay { }
     public method SetResultPreffix { preffix }
     public method GetResultPreffix { } 
+    public method SetCurrentDirectory { fname } 
     
     #-----------------------------------
     # interface creation methods
@@ -70,6 +75,7 @@ itcl::class mpjconnectivity {
     private method CreateResultsControl { base }
     private method CreateFiberDisplayControl { base }
     private method CreateFrontDisplayControl { base }
+    private method CreateMenu { mb }
     public method AddToMenuButton { mb args}    
     public method CreateViewMenu { menubase }
  
@@ -77,7 +83,7 @@ itcl::class mpjconnectivity {
     private method loadtensor { }
     private method loadmask { }
     private method loadsolution { }
-    private method displayresult { }
+    private method displayresult { { mode image } }
     private method saveresult { }
     private method toggleresult { }
     private method saveallresults { }
@@ -170,7 +176,9 @@ itcl::body mpjconnectivity::DismissWindow { } {
 		     -message "Unload all images from memory?" -icon question  ]
     }
     
-    if { $ok == "yes" } {	
+    if { $ok != "yes" } {	
+        return
+    }
 
 	fiber_clear
 	
@@ -182,12 +190,9 @@ itcl::body mpjconnectivity::DismissWindow { } {
 	
 	set global_list(mask_fname) ""
 	set global_list(tensor_fname) ""
-	
-    }
-    
-    if { $ok != "cancel" } {
-	$this HideWindow
-    }
+       
+    [ $parent GetViewer ] UpdateDisplay
+    $this DestroyWindow
 }
 
 #-------------------------------------------------------------------------------------------
@@ -197,6 +202,9 @@ itcl::body mpjconnectivity::InitializeControl { } {
 
     set global_list(appname) "Tensor Connectivity"
     
+    set appname "$global_list(appname) $version"
+    set aboutstring "(c) Marcel Jackowski 2014-2016"
+
     # create list of basic colors
     set global_list(tkcolor_list) "\#ff0000 \#ffff00 \#00ff00 \#00ffff \#0000ff \#ff00ff"
     
@@ -383,7 +391,8 @@ itcl::body mpjconnectivity::initialize_glyphs { } {
 itcl::body mpjconnectivity::loadsolution { } {
 
     ## browse for filename
-    set fname [openfile_dialog $basewidget $global_list(result_fdir) "Select solution" "*.hdr"]
+    set typelist { {"Analyze/NIFT1 Files" { .hdr .hdr.gz .nii .nii.gz }}}
+    set fname  [tk_getOpenFile -title "Select solution" -filetypes $typelist -initialdir $global_list(result_fdir) -parent $basewidget ]
     
     if { $fname != "" } {
 	
@@ -428,7 +437,8 @@ itcl::body mpjconnectivity::LoadSolution { fname } {
 itcl::body mpjconnectivity::loadmask { } {
     
     ## browse for filename
-    set fname [ openfile_dialog $basewidget $global_list(result_fdir) "Select mask" "*.hdr" ]
+    set typelist { {"Analyze/NIFT1 Files" { .hdr .hdr.gz .nii .nii.gz }}}
+    set fname  [tk_getOpenFile -title "Select mask" -filetypes $typelist -initialdir $global_list(result_fdir) -parent $basewidget ]
     
     if { $fname != "" } {
 	
@@ -444,7 +454,7 @@ itcl::body mpjconnectivity::loadmask { } {
 # ------------------------------------------------------------------------------------------
 itcl::body mpjconnectivity::LoadMask { fname } {
 
- set MASK 1     
+    set MASK 1     
     set mask [ lindex $global_list(result_list) $MASK ]
 
     ## load series into memory
@@ -468,7 +478,9 @@ itcl::body mpjconnectivity::LoadMask { fname } {
 	$imcast ClampOverflowOn	
 	$imcast Update
 	
-	$mask ShallowCopyImage [ $imcast GetOutput ]
+	## fixed on 11/1/04
+    $mask CopyImageHeader [ $ana GetImageHeader ]
+    $mask ShallowCopyImage [ $imcast GetOutput ]
 	
 	$imcast Delete
 	
@@ -481,7 +493,7 @@ itcl::body mpjconnectivity::LoadMask { fname } {
     set range [ [ [ [ $mask GetImage ] GetPointData ] GetScalars ] GetRange ]
 
     ## take the maximum range as the number of regions in mask
-    set global_list(mask_nreg) [ lindex $range 1 ]    
+    set global_list(mask_nreg) [ expr int([ lindex $range 1 ])] 
     $widget_list(mask_nreg) configure -range [ list 1 $global_list(mask_nreg) ]
     
     set global_list(mask_fname) $fname
@@ -497,7 +509,8 @@ itcl::body mpjconnectivity::LoadMask { fname } {
 itcl::body mpjconnectivity::loadmap { } {
 
     ## browse for filename
-    set fname [ openfile_dialog $basewidget $global_list(result_fdir) "Select map" "*.hdr" ]
+    set typelist { {"Analyze/NIFT1 Files" { .hdr .hdr.gz .nii .nii.gz }}}
+    set fname  [tk_getOpenFile -title "Select map" -filetypes $typelist -initialdir $global_list(result_fdir) -parent $basewidget ] 
     
     if { $fname != "" } {
 	
@@ -538,7 +551,8 @@ itcl::body mpjconnectivity::LoadMap { fname } {
 itcl::body mpjconnectivity::loadtensor { } {
 
     ## browse for filename
-    set fname [openfile_dialog $basewidget $global_list(result_fdir) "Select tensor" "*.hdr"]
+    set typelist { {"Analyze/NIFT1 Files" { .hdr .hdr.gz .nii .nii.gz }}}
+    set fname  [tk_getOpenFile -title "Select tensor" -filetypes $typelist -initialdir $global_list(result_fdir) -parent $basewidget ] 
     
     if { $fname != "" } {
 	
@@ -579,12 +593,12 @@ itcl::body mpjconnectivity::LoadTensor { fname } {
 
     ## determine coordinate transform
     set or [ $ana GetOrientation ]
-    if { $or == 0 } {
- 	set global_list(track_flipx) 1
- 	set global_list(track_flipy) 1
-    } elseif { $or == 1 } {
- 	set global_list(track_flipx) 1
-    } 
+    #if { $or == 0 } {
+ 	#set global_list(track_flipx) 1
+ 	#set global_list(track_flipy) 1
+    #} elseif { $or == 1 } {
+ 	#set global_list(track_flipx) 1
+    #} 
     
     $ana Delete
 
@@ -593,11 +607,22 @@ itcl::body mpjconnectivity::LoadTensor { fname } {
     set name [ file tail [ file root $fname ] ]
         
     set global_list(tensor_symm) [ expr $nc == 6 ]
+    set global_list(tensor_fname) $fname
 
-    set sufpos [ string last "dti_tensor" $name ]
-    if { $sufpos != -1 } {
-	set name [ string range $name 0 [expr $sufpos - 1] ]
+    set name $fname
+    if { [ file extension $name ] == ".gz" } {
+    set name [ file rootname $name ]
     }
+    if { [ file extension $name ] == ".hdr" } {
+    set name [ file rootname $name ]
+    set global_list(result_fsuffix) ".hdr"
+    } elseif { [ file extension $name ] == ".nii" } {
+    set name [ file rootname $name ]
+    set global_list(result_fsuffix) ".nii.gz"
+    }
+
+    set global_list(result_fdir) "[ file dir $fname ]"
+    set global_list(result_fpreffix) "[file tail $name ]"
 
     ## create fiber image
     set ext [ vtkImageExtractComponents [ pxvtable::vnewobj ] ]
@@ -605,16 +630,16 @@ itcl::body mpjconnectivity::LoadTensor { fname } {
     $ext SetComponents 0
     $ext Update
 
-##  $fibers configure -orientation [ $tensor cget -orientation ]
+    $fibers CopyImageHeader [ $tensor GetImageHeader ]
     $fibers ShallowCopyImage [ $ext GetOutput ]
     $ext Delete
 
-    set global_list(result_fdir) [ file dir $fname ]
-    set global_list(result_fpreffix) [ file join $global_list(result_fdir) "${name}" ]
+    #set global_list(result_fdir) [ file dir $fname ]
+    #set global_list(result_fpreffix) [ file join $global_list(result_fdir) "${name}" ]
 
     WatchOff
 
-    $this SetTitle "$global_list(appname): $name (${dx}x${dy}x${dz}, $nc frames)"
+    #$this SetTitle "$global_list(appname): $name (${dx}x${dy}x${dz}, $nc frames)"
 }
 
 #-------------------------------------------------------------------------------------------
@@ -629,6 +654,10 @@ itcl::body mpjconnectivity::SetResultPreffix { preffix } {
 # ------------------------------------------------------------------------------------------
 itcl::body mpjconnectivity::GetResultPreffix { } {
     return $global_list(result_fpreffix)
+}
+
+itcl::body mpjconnectivity::SetCurrentDirectory { fname } {
+    set global_list(result_fdir) $fname
 }
 
 #-------------------------------------------------------------------------------------------
@@ -646,13 +675,17 @@ itcl::body mpjconnectivity::ClearAllResults { } {
 # ------------------------------------------------------------------------------------------
 itcl::body mpjconnectivity::SaveAllResults { } {
 
-    foreach result $global_list(result_list) title $global_list(result_title) {
-	
-	set fname $global_list(result_fpreffix)
-	set fname "$fname[ lindex $title 1 ]"
-	
-	$result Save $fname
+   foreach result $global_list(result_list) title $global_list(result_title) {
+    
+        set fname $global_list(result_fpreffix)
+        set suffix $global_list(result_fsuffix) 
+        set fname "$fname[ lindex $title 1 ]${suffix}"
+        set dim [ lindex [ [ $result GetImage ] GetDimensions ] 0 ]
+        if { $dim >1 } {
+            $result Save $fname
+        }
     }
+
 }
 
 #-------------------------------------------------------------------------------------------
@@ -671,20 +704,25 @@ itcl::body mpjconnectivity::SaveResult { index } {
 # ------------------------------------------------------------------------------------------
 itcl::body mpjconnectivity::saveallresults { } {
 
-    ## browse for directory
-    set fdir [ savedir_dialog $basewidget $global_list(result_fdir) "Select directory" ]
+  ## browse for directory
+    set fdir [ tk_chooseDirectory -title " Select directory" -parent $basewidget -initialdir $global_list(result_fdir) ]
     
     if { $fdir != "" } {
-	
-	set global_list(result_fdir) $fdir
-	
-	foreach result $global_list(result_list) title $global_list(result_title) {
-	    
-	    set fname $global_list(result_fpreffix)
-	    set fname "$fname[ lindex $title 1 ]"
-	    
-	    $result Save [ file join $fdir $fname ]
-	}
+    
+    set global_list(result_fdir) $fdir
+    
+    foreach result $global_list(result_list) title $global_list(result_title) {
+        
+        set fname $global_list(result_fpreffix)
+        set suffix $global_list(result_fsuffix)   
+        set fname "$fname[ lindex $title 1 ]${suffix}"
+        
+        set dim [ lindex [ [ $result GetImage ] GetDimensions ] 0 ]
+        if { $dim >1 } {
+            $result Save [ file join $fdir $fname ]
+        }  
+    }
+
     }
 }
 
@@ -698,8 +736,8 @@ itcl::body mpjconnectivity::saveresult { } {
     
     if { $sel_item != "" } { 
 
-	## browse for directory
-	set fdir [ savedir_dialog $basewidget $global_list(result_fdir) "Select directory" ]
+    ## browse for directory
+    set fdir [ tk_chooseDirectory -title " Select directory" -parent $basewidget -initialdir $global_list(result_fdir) ]
 	
 	if { $fdir != "" } {
 	    
@@ -711,7 +749,8 @@ itcl::body mpjconnectivity::saveresult { } {
 		set result [ lindex $global_list(result_list) $index ]
 		
 		set fname $global_list(result_fpreffix)
-		set fname "$fname[ lindex [lindex $global_list(result_title) $index ] 1 ]"
+        set suffix $global_list(result_fsuffix) 
+        set fname "$fname[ lindex [lindex $global_list(result_title) $index ] 1 ]${suffix}"
 		
 		$result Save [ file join $fdir $fname ]
 	    }
@@ -722,24 +761,66 @@ itcl::body mpjconnectivity::saveresult { } {
 #-------------------------------------------------------------------------------------------
 #  PUBLIC: Display result
 # ------------------------------------------------------------------------------------------
-itcl::body mpjconnectivity::DisplayResult { index } {
-    $parent SetImageFromObject \
-	[ [ lindex $global_list(result_list) $index ] GetThisPointer ] $this
-    $parent ShowWindow
+itcl::body mpjconnectivity::DisplayResult { index { mode image } } {
+      # -------------------------------------D---
+    # Xenios -- this is the image display part
+    # ----------------------------------------
+
+    set imgtodisplay [ [ lindex $global_list(result_list) $index ] GetThisPointer]
+    set rawimg  [ $imgtodisplay GetImage ] 
+    set r [ [ [ $rawimg GetPointData ] GetScalars ] GetRange ]
+
+    set rmin [ lindex $r 0 ]
+    set rmax [ lindex $r 1 ]
+
+
+    # Step 1.
+    # Update Lookup table range and lookup table
+    
+    # this is in the object resultluk -- see roughly line 2893
+    # SetSaturationRange -- use this from image range!
+    # Update
+
+    #set resultluk  $widget_list(view_resultluk) 
+
+    #$resultluk SetSaturationRange $rmin $rmax
+    #$resultluk SetTableRange $rmin $rmax
+    #$resultluk Update
+
+
+    # Step 2.
+    # Ship Image and Lookup Table 
+
+    if { $mode == "image" } {
+    $parent SetImageFromObject $imgtodisplay $this
+    #$parent SetLookupTable [ $resultluk GetLookupTable ]
+    [ $parent GetViewer ] UpdateDisplay
+    return
+    }
+
+    $parent SetMaskFromObject $imgtodisplay $this
+    #[ $parent GetViewer ]  SetObjectLookupTable [ $resultluk GetLookupTable ]
+    [ $parent GetViewer ] UpdateDisplay
+    return
 }
 
 #-------------------------------------------------------------------------------------------
 #  PRIVATE: Display result
 # ------------------------------------------------------------------------------------------
-itcl::body mpjconnectivity::displayresult { } {
+itcl::body mpjconnectivity::displayresult { { mode image } } {
 
-    set sel_item [ $widget_list(result_list) getcurselection ]
-	    
+     set sel_item [ $widget_list(result_list) getcurselection ]
+        
     if { $sel_item != "" } {
-	set index [ $widget_list(result_list) index [ lindex $sel_item 0 ] ]
-	set result [ lindex $global_list(result_list) $index ]
-	
-	$this DisplayResult $index	
+    set index [ $widget_list(result_list) index [ lindex $sel_item 0 ] ]
+    set result [ lindex $global_list(result_list) $index ]
+
+    #set range [ [ [ [ $result GetImage ] GetPointData ] GetScalars ] GetRange ]
+    #$widget_list(view_resultluk) SetTableRange [ lindex $range 0 ] [ lindex $range 1 ]
+    #   $widget_list(view_resultluk) Update
+
+    #puts "$index $mode"
+    $this DisplayResult $index $mode
     }
 }
 
@@ -1934,7 +2015,7 @@ itcl::body mpjconnectivity::fiber_removeselected { } {
 # ------------------------------------------------------------------------------------------
 itcl::body mpjconnectivity::fiber_load { } {
     
-    set fname [ openfile_dialog $basewidget $global_list(result_fdir) "Select file" "*.fib" ]
+   set fname  [tk_getOpenFile -title "Select fiber file" -filetypes { {"Fibers" {.fib}}} -initialdir $global_list(result_fdir) -parent $basewidget ] 
 
     ## browse for filename
     if { $fname != "" } { 
@@ -1988,9 +2069,9 @@ itcl::body mpjconnectivity::fiber_saveselected { } {
     
     if { $sel_item != "" } {
 	
-	## browse for directory
-	set fdir [ savedir_dialog $basewidget $global_list(result_fdir) "Select directory" ]
-	
+    ## browse for directory
+    set fdir [ tk_chooseDirectory -title " Select directory" -parent $basewidget -initialdir $global_list(result_fdir) ]
+    	
 	## browse for directory
 	if { $fdir != "" } {
 	    	    
@@ -2009,8 +2090,8 @@ itcl::body mpjconnectivity::fiber_saveselected { } {
 # ------------------------------------------------------------------------------------------
 itcl::body mpjconnectivity::fiber_saveall { } {
     
-    ## browse for directory
-    set fdir [ savedir_dialog $basewidget $global_list(result_fdir) "Select directory" ]
+  ## browse for directory    
+    set fdir [ tk_chooseDirectory -title " Select directory" -parent $basewidget -initialdir $global_list(result_fdir) ]
 
     ## browse for directory
     if { $fdir != "" } { 
@@ -2605,10 +2686,13 @@ itcl::body mpjconnectivity::fiber_track { } {
      
     if { [ $map GetImageSize ] == 1 } {
 	
-	## create dummy map
-##	$map configure -orientation [ $fibers cget -orientation ]
-	$map ShallowCopyImage [ $fibers GetImage ]
+## create dummy map
+    $map CopyImageHeader [ $fibers GetImageHeader ]
+    $map ShallowCopyImage [ $fibers GetImage ]
     }
+
+    ## if tracking, one wants to see the fibers
+    set global_list(view_fiber) 1
 
     WatchOn
 
@@ -2687,12 +2771,13 @@ itcl::body mpjconnectivity::fiber_track { } {
 	
  	set dens $global_list(track_seeddens)
 
-	set source [ vtkmpjImagePointSource [ pxvtable::vnewobj ] ]
-	$source SetMask [ $imthr GetOutput ]
-	$source SetOrigin $org0 $org1 $org2
-	$source SetSpacing $spc0 $spc1 $spc2
-	$source SetDensity $dens
-	$source Update
+    set source [ vtkmpjImageROISource [ pxvtable::vnewobj ] ]
+    $source SetMask [ $imthr GetOutput ]
+    $source SetSourceToMask
+    $source SetOrigin $org0 $org1 $org2
+    $source SetSpacing $spc0 $spc1 $spc2
+    $source SetDensity $dens
+    $source Update
 	
  	## assign source points
 	$streamer SetSource [ $source GetOutput ]
@@ -3543,77 +3628,6 @@ itcl::body mpjconnectivity::CreateDisplayControl { base } {
     $display_notebook view "Fibers"   
 }
 
-
-#-------------------------------------------------------------------------------------------
-#  Create dialog boxes
-# ------------------------------------------------------------------------------------------
-itcl::body mpjconnectivity::savedir_dialog { base initdir title } {
-    
-    ## create save directory dialog box
-    set savedir [ iwidgets::extfileselectiondialog $base._savedir \
-		      -title $title \
-		      -directory $initdir \
-		      -master $base \
-		      -fileson 0 \
-		      -selectionon 0 \
-		      -modality application ]
-
-    ## center it
-    $savedir center $base
-    
-    set dir ""
-
-    ## activate it
-    if { [ $savedir activate ] } {
-	
-	## get directory 
-	set dir [ $savedir get ] 
-	
-	if { [ llength $dir ] == 0 } {
-	    set dir $initdir
-	}	
-    }
-    
-    itcl::delete object $savedir
-
-    return $dir
-}
-
-#-------------------------------------------------------------------------------------------
-#  Create dialog boxes
-# ------------------------------------------------------------------------------------------
-itcl::body mpjconnectivity::openfile_dialog { base initdir title mask } {
-    
-    ## create open file dialog box
-    set openfile [ iwidgets::extfileselectiondialog $base._openfile \
-		      -title $title \
-		      -directory $initdir \
-		      -master $base \
-		      -width 500 \
-		      -mask $mask \
-		      -modality application ]
-    
-    ## center it
-    $openfile center $base
-    
-    set fname ""
-
-    ## activate it
-    if { [ $openfile activate ] } {
-	
-	## get directory 
-	set fname [ $openfile get ] 
-	
-	if { [ llength $fname ] == 0 } {
-	    set fname $initdir
-	}	
-    }
-    
-    itcl::delete object $openfile
-
-    return $fname
-}
-
 # -------------------------------------------------------------------------------------------
 #  Diffusion control inititialization
 # ------------------------------------------------------------------------------------------
@@ -3625,7 +3639,7 @@ itcl::body mpjconnectivity::Initialize { widget } {
     #  Create User Interface
     #  -------------------------------------	
     set basewidget [toplevel $widget ]
-    wm geometry $basewidget 620x480
+    wm geometry $basewidget 620x520
     wm withdraw $basewidget
 
     set notebook $basewidget.notebook    
@@ -3655,17 +3669,61 @@ itcl::body mpjconnectivity::Initialize { widget } {
     pack $w.close -side right -fill x -padx 5 -pady 10
     
     set initialized 1
-    SetTitle "Tensor Connectivity"
+  
+    SetTitle $appname
 
     eval "wm protocol $basewidget WM_DELETE_WINDOW { $this DismissWindow }"
     return $basewidget
 }
 
 #-------------------------------------------------------------------------------------------
+#  Create top level menu button
+# ------------------------------------------------------------------------------------------
+itcl::body mpjfibertracking::CreateMenu { mb } {    
+    
+    menubutton $mb.results       -text Results     -menu $mb.results.m -underline 0
+    pack $mb.results    -side left
+    menubutton $mb.tracking -text Connectivity -menu $mb.tracking.m -underline 0
+    pack $mb.tracking -side left
+    menubutton $mb.help      -text Help         -menu $mb.help.m -underline 0 -padx 4
+    pack $mb.help  -side right
+
+    menu $mb.results.m -tearoff 0 
+#    eval "$mb.results.m add command -label \"Track fibers\" -command { $this fiber_track } -underline 0 -state disabled"
+    $mb.results.m add command -label "Save All Results" -command [ itcl::code $this saveallresults ] -underline 0
+    $mb.results.m add separator
+    if { $parent == 0 } {
+    eval "$mb.results.m add command -label Exit -command {  pxtkexit } -underline 1"
+    } else {
+    eval "$mb.results.m add command -label Close -command {  $this HideWindow } -underline 1"
+    }
+
+    menu $mb.tracking.m -tearoff 0
+    $mb.tracking.m add command -label "Track fibers" -command [ itcl::code $this fiber_track ] -underline 0 -state disabled
+
+    menu $mb.help.m -tearoff 0
+
+    set widget_list(menu_results) $mb.results.m    
+    set widget_list(menu_tracking) $mb.tracking.m
+
+    eval "$mb.help.m add command -label About -command { $this AboutCommand }"
+   
+}
+
+#-------------------------------------------------------------------------------------------
 #  Add controls to menu button
 # ------------------------------------------------------------------------------------------
-itcl::body mpjconnectivity::AddToMenuButton { mb args } {
+itcl::body mpjfibertracking::AddToMenuButton { mb args } {
     eval "$mb add command -label \"Connectivity\" -command {$this ShowWindow \"Input\"}"
+}
+
+#-------------------------------------------------------------------------------------------
+#  Main function for stand-alone execution
+# ------------------------------------------------------------------------------------------
+if { [ file rootname $argv0 ] == [ file rootname [ info script ] ] } {
+    puts "\n[ file rootname $argv0 ] is not a stand-alone program.\n"
+    exit
+
 }
 
 
